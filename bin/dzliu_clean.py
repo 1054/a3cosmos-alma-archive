@@ -880,7 +880,7 @@ def arcsec2float(arcsec_str):
 # 
 def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter = 30000, calcres = True, calcpsf = True, 
                              phasecenter = '', field = '', pbmask = 0.2, pblimit = 0.1, threshold = 0.0, specmode = 'cube', 
-                             beamsize = '', robust = ''):
+                             beamsize = '', robust = None):
     # 
     # Requires CASA module/function tb.
     # 
@@ -1093,7 +1093,7 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     clean_parameters['calcres'] = calcres
     clean_parameters['calcpsf'] = calcpsf
     
-    if robust != '':
+    if robust is not None:
         clean_parameters['weighting'] = 'briggs'
         clean_parameters['robust'] = robust
     
@@ -1661,7 +1661,7 @@ def dzliu_clean(dataset_ms,
                 make_continuum = True, 
                 phasecenter = '', 
                 beamsize = '', 
-                robust = '', 
+                robust = None, 
                 line_name = None, 
                 line_velocity = None, 
                 line_velocity_width = None, 

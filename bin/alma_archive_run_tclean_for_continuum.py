@@ -67,7 +67,7 @@ def go(vis):
                                     make_line_cube = False, 
                                     make_continuum = True, 
                                     beamsize = 'common', 
-                                    robust = '2.0', 
+                                    robust = 2.0, 
                                    )
             # 
             # output will be:
