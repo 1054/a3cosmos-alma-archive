@@ -33,10 +33,19 @@ shift
 data_dir=$(dirname "$data_path")
 data_name=$(basename "$data_path")
 
+if [[ ! -d "$data_dir" ]]; then
+    echo "Error! Data directory \"$data_dir\" does not exist!"
+    exit 255
+fi
+
 current_dir=$(pwd)
 
 echo cd "$data_dir"
 cd "$data_dir"
+
+if [[ "$data_dir" != "/"* ]]; then
+    data_dir=$(pwd)
+fi
 
 if [[ ! -d "run_tclean" ]]; then
     mkdir "run_tclean"

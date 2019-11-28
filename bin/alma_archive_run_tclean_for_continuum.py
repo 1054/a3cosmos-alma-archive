@@ -27,10 +27,9 @@ except:
 
 def go(vis):
     
-    paths = os.path.abspath(vis).split(os.sep)
+    paths = os.path.abspath(os.path.dirname(os.path.dirname(vis))).split(os.sep)
     if len(paths) < 5:
         raise Exception('Error! The absolute path of the input data "%s" seems do not contain project, SB, GB, MB paths!'%(vis))
-    
     project = paths[-5]
     SB = paths[-4].split('_')[-1]
     GB = paths[-3].split('_')[-1]
@@ -53,6 +52,7 @@ def go(vis):
     #        list_of_images = json.load(fp)
     
     # 
+    failed_fields = []
     for field in fields:
         
         field = str(field).strip()
@@ -61,29 +61,39 @@ def go(vis):
         print('final_output_image = %s'%(final_output_image))
         
         if not os.path.isfile(final_output_image):
-            dzliu_clean.dzliu_clean(vis, 
-                                    output_image = '%s'%(field), 
-                                    galaxy_name = field, 
-                                    make_line_cube = False, 
-                                    make_continuum = True, 
-                                    beamsize = 'common', 
-                                    robust = 2.0, 
-                                   )
-            # 
-            # output will be:
-            #   '%s_cont.ms'%(field)
-            #   '%s_cont.image.fits'%(field)
-            # 
+            
             if not os.path.isfile('%s_cont_clean.image.fits'%(field)):
+                dzliu_clean.dzliu_clean(vis, 
+                                        output_image = '%s'%(field), 
+                                        galaxy_name = field, 
+                                        make_line_cube = False, 
+                                        make_continuum = True, 
+                                        beamsize = 'common', 
+                                        robust = 2.0, 
+                                       )
+                # 
+                # output will be:
+                #   '%s_cont.ms'%(field)
+                #   '%s_cont.image.fits'%(field)
+                # 
+                if not os.path.isfile('%s_cont_clean.image.fits'%(field)):
                 print('Error! Failed to produce "%s/%s"! Will skip this one and try to continue..'%(os.path.abspath(os.getcwd()), '%s_cont_clean.image.fits'%(field)))
+                failed_fields.append(field)
                 continue
-            else:
-                shutil.copy('%s_cont_clean.image.fits'%(field), final_output_image)
-                print('Output to "%s"'%(final_output_image))
+            
+            shutil.copy('%s_cont_clean.image.fits'%(field), final_output_image)
+            print('Output to "%s"'%(final_output_image))
+            
         else:
             print('Found existing "%s"'%(final_output_image))
         # 
         list_of_images.append(final_output_image)
+    
+    # 
+    if len(failed_fields) > 0:
+        print('Error occurred. These fields were not successfully imaged from vis "%s": '%(vis))
+        for field in failed_fields:
+            print('  %s'%(field))
     
     # 
     if len(list_of_images) > 0:
