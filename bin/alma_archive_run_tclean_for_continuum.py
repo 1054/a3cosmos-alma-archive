@@ -40,6 +40,7 @@ def go(vis):
     fields, phasecenters = dzliu_clean.get_all_fields(vis)
     
     spw_ids, spw_names, spw_ref_freqs = dzliu_clean.get_all_spws(vis)
+    print('spw_ids = %s'%(str(spw_ids)))
     
     list_of_images = []
     if os.path.isfile('list_of_images.json'):
@@ -51,10 +52,10 @@ def go(vis):
     # 
     for field in fields:
         
-        field = field.strip()
+        field = str(field).strip()
         
         final_output_image = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%s.cont.I.image.fits'%(project, SB, GB, MB, field, '_'.join(np.array(spw_ids).astype(str).tolist())), 
-        print('final_output_image', final_output_image)
+        print('final_output_image = %s'%(final_output_image))
         
         if not os.path.isfile(final_output_image):
             dzliu_clean.dzliu_clean(vis, 
