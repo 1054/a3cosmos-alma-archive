@@ -440,11 +440,12 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
     spw_ref_freq_col = tb.getcol('REF_FREQUENCY')
     tb.close()
     
-    valid_spw_indicies = np.argwhere([re.match(r'.*FULL_RES.*', t) is not None for t in spw_names]).flatten().tolist()
-    if len(valid_spw_indicies) == 0:
-        valid_spw_indicies = np.argwhere([re.match(r'.*WVR.*', t) is None for t in spw_names]).flatten().tolist()
-    if len(valid_spw_indicies) == 0:
-        raise Exception('Error! No valid spw in the input dataset "%s"! spw_names = %s'%(dataset_ms, spw_names))
+    #valid_spw_indicies = np.argwhere([re.match(r'.*FULL_RES.*', t) is not None for t in spw_names]).flatten().tolist()
+    #if len(valid_spw_indicies) == 0:
+    #    valid_spw_indicies = np.argwhere([re.match(r'.*WVR.*', t) is None for t in spw_names]).flatten().tolist()
+    #if len(valid_spw_indicies) == 0:
+    #    raise Exception('Error! No valid spw in the input dataset "%s"! spw_names = %s'%(dataset_ms, spw_names))
+    valid_spw_indicies, valid_spw_names, valid_spw_nchan, valid_spw_ref_freqs = get_all_spws(dataset_ms)
     
     # 
     # check user input
@@ -699,9 +700,13 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     tb.close()
     
     #print('spw_names:', spw_names)
-    valid_spw_indicies = np.argwhere([re.match(r'.*FULL_RES.*', t) is not None for t in spw_names]).flatten().tolist()
-    if len(valid_spw_indicies) == 0:
-        valid_spw_indicies = np.argwhere([re.match(r'.*WVR.*', t) is None for t in spw_names]).flatten().tolist()
+    #valid_spw_indicies = np.argwhere([re.match(r'.*FULL_RES.*', t) is not None for t in spw_names]).flatten().tolist()
+    #if len(valid_spw_indicies) == 0:
+    #    valid_spw_indicies = np.argwhere([re.match(r'.*WVR.*', t) is None for t in spw_names]).flatten().tolist()
+    #if len(valid_spw_indicies) == 0:
+    #    raise Exception('Error! No valid spw in the input dataset "%s"! spw_names = %s'%(dataset_ms, spw_names))
+    valid_spw_indicies, valid_spw_names, valid_spw_nchan, valid_spw_ref_freqs = get_all_spws(dataset_ms)
+    
     ref_freq_Hz = np.nan
     linespws = [] # the target line may be contained in multiple spws?
     linechanwidths = [] # a list of channel widths in Hz for each matched line spw, for all matched line spws
