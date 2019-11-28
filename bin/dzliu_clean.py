@@ -324,7 +324,6 @@ def get_all_spws(vis):
     casalog.origin('get_all_spws')
     # 
     tb.open(vis+os.sep+'SPECTRAL_WINDOW')
-    tb.open(dataset_ms+os.sep+'SPECTRAL_WINDOW')
     spw_names = tb.getcol('NAME')
     spw_chan_freq_col = [tb.getcell('CHAN_FREQ', i) for i in range(tb.nrows())]
     spw_chan_width_col = [tb.getcell('CHAN_WIDTH', i) for i in range(tb.nrows())]
