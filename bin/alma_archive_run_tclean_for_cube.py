@@ -64,13 +64,13 @@ def go(vis):
             
             if not os.path.isfile(final_output_cube):
                 
-                if not os.path.isfile('%s_spw%d_clean.image.fits'%(field, spw_id)):
+                if not os.path.isfile('%s_cube_spw%d_clean.image.fits'%(field, spw_id)):
                     dzliu_clean.dzliu_clean(vis, 
                                             output_image = '%s'%(field), 
                                             galaxy_name = field, 
                                             make_line_cube = True, 
                                             make_continuum = False, 
-                                            line_name = 'spw%d'%(spw_id), 
+                                            line_name = 'cube_spw%d'%(spw_id), 
                                             line_velocity = 0, 
                                             line_velocity_width = 0, 
                                             line_velocity_resolution = 30.0, 
@@ -79,15 +79,15 @@ def go(vis):
                                            )
                     # 
                     # output will be:
-                    #   '%s_spw%d.ms'%(field, spw_id)
-                    #   '%s_spw%d_clean.image.fits'%(field, spw_id)
+                    #   '%s_cube_spw%d.ms'%(field, spw_id)
+                    #   '%s_cube_spw%d_clean.image.fits'%(field, spw_id)
                     # 
-                    if not os.path.isfile('%s_spw%d_clean.image.fits'%(field, spw_id)):
-                        print('Error! Failed to produce "%s/%s"! Will skip this one and try to continue..'%(os.path.abspath(os.getcwd()), '%s_spw%d_clean.image.fits'%(field, spw_id)))
+                    if not os.path.isfile('%s_cube_spw%d_clean.image.fits'%(field, spw_id)):
+                        print('Error! Failed to produce "%s/%s"! Will skip this one and try to continue..'%(os.path.abspath(os.getcwd()), '%s_cube_spw%d_clean.image.fits'%(field, spw_id)))
                         failed_fields.append(field)
                         continue
                 
-                shutil.copy('%s_spw%d_clean.image.fits'%(field, spw_id), final_output_cube)
+                shutil.copy('%s_cube_spw%d_clean.image.fits'%(field, spw_id), final_output_cube)
                 print('Output to "%s"'%(final_output_cube))
                 
             else:

@@ -71,8 +71,8 @@ cd "$current_dir"
 
 
 # the code run in CASA will output to a subdirectory named "run_tclean"
-if [[ -f "$data_dir/run_tclean/list_of_images.json" ]]; then
-    echo "Output to \"$data_dir/run_tclean/list_of_images.json\" which contains the list of cleaned cube images."
+if [[ -f "$data_dir/run_tclean/list_of_cubes.json" ]]; then
+    echo "Output to \"$data_dir/run_tclean/list_of_cubes.json\" which contains the list of cleaned cube cubes."
 else
     echo "Error occurred! Please check the log!"
     exit 255

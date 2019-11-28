@@ -683,7 +683,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     # 
     # calc linefreq
     # 
-    if not line_name.startswith('spw'):
+    if not re.match(r'^(cube_spw|spw)([0-9]+)$', line_name):
         lab_line_name, lab_line_freq = find_lab_line_name_and_freq(line_name)
         #linefreq = lab_line_freq*(1.0-(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with radio definition
         linefreq = lab_line_freq/(1.0+(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with optical definition
@@ -721,8 +721,8 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
         spw_ref_freq = spw_ref_freq_col[i]
         print2('spw_%d, ref_freq %.3e Hz, chan_freq %.3e .. %.3e Hz (%d), chan_width %.3e Hz'%(i, spw_ref_freq, np.max(spw_chan_freq_list), np.min(spw_chan_freq_list), len(spw_chan_freq_list), np.min(spw_chan_width_list) ) )
         # find the target line in these spw
-        if line_name.startswith('spw'):
-            if int(line_name.replace('spw','')) == i:
+        if re.match(r'^(cube_spw|spw)([0-9]+)$', line_name):
+            if int(re.sub(r'^(cube_spw|spw)([0-9]+)$', r'\2', line_name)) == i:
                 # found our target line within this spw
                 ref_freq_Hz = spw_ref_freq
                 linespws.append(i)
