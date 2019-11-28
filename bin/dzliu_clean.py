@@ -917,7 +917,7 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     # 
     # if user has input a beamsize, then use it
     # 
-    if beamsize != '':
+    if beamsize != '' and beamsize != 'common':
         synbeam = arcsec2float(beamsize)
         if imcell is None:
             oversampling = 5.0
@@ -1096,6 +1096,9 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     if robust != '':
         clean_parameters['weighting'] = 'briggs'
         clean_parameters['robust'] = robust
+    
+    if beamsize == 'common':
+        clean_parameters['restoringbeam'] = 'common'
     
     # 
     # Check mpicasa
