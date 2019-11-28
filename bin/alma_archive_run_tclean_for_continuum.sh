@@ -51,8 +51,8 @@ ln -fs ../"$data_name"
 echo source "$casa_setup_script_path"
 source "$casa_setup_script_path"
 
-echo casa --no-gui --log2term -c "\"import sys; sys.path.append(\\\"$(dirname ${BASH_SOURCE[0]})\\\"); import alma_archive_run_tclean_for_continuum; alma_archive_run_tclean_for_continuum.go(\\\"$data_name\\\")\""
-casa --no-gui --log2term -c "import sys; sys.path.append(\"$(dirname ${BASH_SOURCE[0]})\"); import alma_archive_run_tclean_for_continuum; alma_archive_run_tclean_for_continuum.go(\"$data_name\")"
+echo casa --nogui --log2term -c "\"import sys; sys.path.append(\\\"$(dirname ${BASH_SOURCE[0]})\\\"); import alma_archive_run_tclean_for_continuum; alma_archive_run_tclean_for_continuum.go(\\\"$data_name\\\")\""
+casa --nogui --log2term -c "import sys; sys.path.append(\"$(dirname ${BASH_SOURCE[0]})\"); import alma_archive_run_tclean_for_continuum; alma_archive_run_tclean_for_continuum.go(\"$data_name\")"
 
 echo cd ../
 cd ../
