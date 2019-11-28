@@ -728,6 +728,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
                 linespws.append(i)
                 linechanwidths.append(spw_chan_width_list) # append all valid spw 
                 linechanfreqs.append(spw_chan_freq_list)
+                linefreq = np.mean(spw_chan_freq_list)
         else:
             if linefreq >= np.min(spw_chan_freq_list) and linefreq <= np.max(spw_chan_freq_list):
                 # found our target line within this spw
