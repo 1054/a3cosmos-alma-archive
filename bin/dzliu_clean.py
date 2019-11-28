@@ -434,9 +434,10 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
     # 
     # get spectral_window and ref_freq
     tb.open(dataset_ms+os.sep+'SPECTRAL_WINDOW')
+    spw_indicies = np.arange(tb.nrows())
     spw_names = tb.getcol('NAME')
-    spw_chan_freq_col = [tb.getcell('CHAN_FREQ', i) for i in range(tb.nrows())]
-    spw_chan_width_col = [tb.getcell('CHAN_WIDTH', i) for i in range(tb.nrows())]
+    spw_chan_freq_col = [tb.getcell('CHAN_FREQ', i) for i in spw_indicies]
+    spw_chan_width_col = [tb.getcell('CHAN_WIDTH', i) for i in spw_indicies]
     spw_ref_freq_col = tb.getcol('REF_FREQUENCY')
     tb.close()
     
@@ -517,8 +518,10 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
         
         # 
         # find line-free channels
-        all_spw_chan_selection_str = ''
-        all_spw_chan_selection_mask = []
+        #all_spw_chan_selection_str = ''
+        #all_spw_chan_selection_mask = []
+        valid_spw_chan_selection_str = ''
+        valid_spw_chan_selection_mask = []
         for i in valid_spw_indicies:
             spw_chan_freq_list = spw_chan_freq_col[i]
             spw_chan_width_list = spw_chan_width_col[i]
@@ -548,24 +551,24 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
             # so we will have to loop the valid spw again and do mstransform one spw by one spw. 
             # 
             spw_chan_selection_str = encodeSpwChannelSelection(np.nonzero(spw_chan_selection_mask)[0])
-            all_spw_chan_selection_str += '%d:%s'%(i, spw_chan_selection_str)
+            valid_spw_chan_selection_str += '%d:%s'%(i, spw_chan_selection_str)
             if i != valid_spw_indicies[-1]:
-                all_spw_chan_selection_str += ','
+                valid_spw_chan_selection_str += ','
             # 
             # store the chan selection mask
-            all_spw_chan_selection_mask.append(spw_chan_selection_mask)
+            valid_spw_chan_selection_mask.append(spw_chan_selection_mask)
         # 
-        if len(all_spw_chan_selection_mask) == 0:
+        if len(valid_spw_chan_selection_mask) == 0:
             raise ValueError('Error! No line free channels with all_line_frequency %s in the input vis "%s"!'%(all_line_frequency, dataset_ms))
         
-        print2('spw = %s'%(all_spw_chan_selection_str))
+        print2('spw = %s'%(valid_spw_chan_selection_str))
         
     else:
         
         # 
         # simply loop all spws and use all channels therein
-        all_spw_chan_selection_str = ''
-        all_spw_chan_selection_mask = []
+        valid_spw_chan_selection_str = ''
+        valid_spw_chan_selection_mask = []
         for i in valid_spw_indicies:
             spw_chan_freq_list = spw_chan_freq_col[i]
             spw_chan_width_list = spw_chan_width_col[i]
@@ -574,12 +577,12 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
             # 
             spw_chan_selection_mask = np.full(len(spw_chan_width_list), True) # select all channels
             # 
-            all_spw_chan_selection_str += '%d'%(i)
+            valid_spw_chan_selection_str += '%d'%(i)
             if i != valid_spw_indicies[-1]:
-                all_spw_chan_selection_str += ','
+                valid_spw_chan_selection_str += ','
             # 
             # store the chan selection mask
-            all_spw_chan_selection_mask.append(spw_chan_selection_mask)
+            valid_spw_chan_selection_mask.append(spw_chan_selection_mask)
     
     
     # 
@@ -593,10 +596,10 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
     # 
     # loop and split each chan range of each spw
     all_split_spw_ms = [] # to store temporary splitted spw ms
-    for i in valid_spw_indicies:
+    for ii,i in enumerate(valid_spw_indicies):
         # 
         # spw_chan_selection_mask
-        spw_chan_selection_mask = all_spw_chan_selection_mask[i]
+        spw_chan_selection_mask = valid_spw_chan_selection_mask[ii]
         if np.count_nonzero(spw_chan_selection_mask) <= 0:
             continue
         # 
