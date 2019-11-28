@@ -1097,7 +1097,7 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     clean_parameters['phasecenter'] = phasecenter
     clean_parameters['cell'] = imcell # tclean parameter name
     clean_parameters['imsize'] = imsize # tclean parameter name
-    clean_parameters['imagename'] = imagename # output_dir+os.sep+'%s_%s_cleaned'%(galaxy_name_cleaned, linename)
+    clean_parameters['imagename'] = imagename # output_dir+os.sep+'%s_%s_cleaned'%(galaxy_name_cleaned, line_name)
     clean_parameters['gridder'] = 'mosaic' # 'standard'
     clean_parameters['specmode'] = specmode # 'cube' # for spectral line cube
     clean_parameters['outframe'] = 'LSRK'
@@ -1774,9 +1774,9 @@ def dzliu_clean(dataset_ms,
     for i in range(num_lines):
         # 
         # Set output name for each line
-        line_ms = '%s_%s.ms'%(output_name, linename[i])
-        line_dirty_cube = '%s_%s_dirty'%(output_name, linename[i])
-        line_clean_cube = '%s_%s_clean'%(output_name, linename[i])
+        line_ms = '%s_%s.ms'%(output_name, line_name[i])
+        line_dirty_cube = '%s_%s_dirty'%(output_name, line_name[i])
+        line_clean_cube = '%s_%s_clean'%(output_name, line_name[i])
         # 
         # Check existing files
         if overwrite:
