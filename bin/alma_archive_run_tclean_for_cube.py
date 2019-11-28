@@ -59,10 +59,10 @@ def go(vis):
         
         for spw_id in spw_ids:
             
-            final_output_cube = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%d.cube.fits'%(project, SB, GB, MB, field, spw_id)
-            print('final_output_cube = %s'%(final_output_cube))
+            final_output_name = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%d'%(project, SB, GB, MB, field, spw_id)
+            print('final_output_name = %s'%(final_output_name))
             
-            if not os.path.isfile(final_output_cube):
+            if not os.path.isfile(final_output_name+'.cube.I.image.fits'):
                 
                 if not os.path.isfile('%s_cube_spw%d_clean.image.fits'%(field, spw_id)):
                     dzliu_clean.dzliu_clean(vis, 
@@ -87,13 +87,16 @@ def go(vis):
                         failed_fields.append(field)
                         continue
                 
-                shutil.copy('%s_cube_spw%d_clean.image.fits'%(field, spw_id), final_output_cube)
-                print('Output to "%s"'%(final_output_cube))
+                shutil.copy('%s_cube_spw%d_clean.image.fits'%(field, spw_id), final_output_name+'.cube.I.image.fits')
+                shutil.copy('%s_cube_spw%d_clean.image.pbcor.fits'%(field, spw_id), final_output_name+'.cube.I.pbcor.fits')
+                shutil.copy('%s_cube_spw%d_clean.pb.fits'%(field, spw_id), final_output_name+'.cube.pb.fits')
+                shutil.copy('%s_cube_spw%d_clean.psf.fits'%(field, spw_id), final_output_name+'.cube.psf.fits')
+                print('Output to "%s"'%(final_output_name+'.cube.I.image.fits'))
                 
             else:
-                print('Found existing "%s"'%(final_output_cube))
+                print('Found existing "%s"'%(final_output_name+'.cube.I.image.fits'))
             # 
-            list_of_cubes.append(final_output_cube)
+            list_of_cubes.append(final_output_name+'.cube.I.image.fits')
     
     # 
     if len(failed_fields) > 0:

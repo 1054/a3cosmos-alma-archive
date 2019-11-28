@@ -57,10 +57,10 @@ def go(vis):
         
         field = str(field).strip()
         
-        final_output_image = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%s.cont.I.image.fits'%(project, SB, GB, MB, field, '_'.join(np.array(spw_ids).astype(str).tolist()))
-        print('final_output_image = %s'%(final_output_image))
+        final_output_name = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%s'%(project, SB, GB, MB, field, '_'.join(np.array(spw_ids).astype(str).tolist()))
+        print('final_output_name = %s'%(final_output_name))
         
-        if not os.path.isfile(final_output_image):
+        if not os.path.isfile(final_output_name+'.cont.I.image.fits'):
             
             if not os.path.isfile('%s_cont_clean.image.fits'%(field)):
                 dzliu_clean.dzliu_clean(vis, 
@@ -81,13 +81,16 @@ def go(vis):
                     failed_fields.append(field)
                     continue
             
-            shutil.copy('%s_cont_clean.image.fits'%(field), final_output_image)
-            print('Output to "%s"'%(final_output_image))
+            shutil.copy('%s_cont_clean.image.fits'%(field), final_output_name+'.cont.I.image.fits')
+            shutil.copy('%s_cont_clean.image.pbcor.fits'%(field), final_output_name+'.cont.I.pbcor.fits')
+            shutil.copy('%s_cont_clean.pb.fits'%(field), final_output_name+'.cont.I.pb.fits')
+            shutil.copy('%s_cont_clean.psf.fits'%(field), final_output_name+'.cont.I.psf.fits')
+            print('Output to "%s"'%(final_output_name+'.cont.I.image.fits'))
             
         else:
-            print('Found existing "%s"'%(final_output_image))
+            print('Found existing "%s"'%(final_output_name+'.cont.I.image.fits'))
         # 
-        list_of_images.append(final_output_image)
+        list_of_images.append(final_output_name+'.cont.I.image.fits')
     
     # 
     if len(failed_fields) > 0:
