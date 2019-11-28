@@ -683,9 +683,10 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     # 
     # calc linefreq
     # 
-    lab_line_name, lab_line_freq = find_lab_line_name_and_freq(line_name)
-    #linefreq = lab_line_freq*(1.0-(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with radio definition
-    linefreq = lab_line_freq/(1.0+(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with optical definition
+    if not line_name.startswith('spw'):
+        lab_line_name, lab_line_freq = find_lab_line_name_and_freq(line_name)
+        #linefreq = lab_line_freq*(1.0-(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with radio definition
+        linefreq = lab_line_freq/(1.0+(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with optical definition
     
     # 
     # check data column
@@ -713,24 +714,31 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     ref_freq_Hz = np.nan
     linespws = [] # the target line may be contained in multiple spws?
     linechanwidths = [] # a list of channel widths in Hz for each matched line spw, for all matched line spws
-    #linechanfreq = []
-    #linechanfreqs = []
+    linechanfreqs = []
     for i in valid_spw_indicies:
         spw_chan_freq_list = spw_chan_freq_col[i]
         spw_chan_width_list = spw_chan_width_col[i]
         spw_ref_freq = spw_ref_freq_col[i]
         print2('spw_%d, ref_freq %.3e Hz, chan_freq %.3e .. %.3e Hz (%d), chan_width %.3e Hz'%(i, spw_ref_freq, np.max(spw_chan_freq_list), np.min(spw_chan_freq_list), len(spw_chan_freq_list), np.min(spw_chan_width_list) ) )
         # find the target line in these spw
-        if linefreq >= np.min(spw_chan_freq_list) and linefreq <= np.max(spw_chan_freq_list):
-            # found our target line within this spw
-            ref_freq_Hz = spw_ref_freq
-            linespws.append(i)
-            linechanwidths.append(spw_chan_width_list) # append all valid spw 
-            #linechanfreq = spw_chan_freq_list
-            #linechanfreqs.append(spw_chan_freq_list)
+        if line_name.startswith('spw'):
+            if int(line_name.replace('spw','')) == i:
+                # found our target line within this spw
+                ref_freq_Hz = spw_ref_freq
+                linespws.append(i)
+                linechanwidths.append(spw_chan_width_list) # append all valid spw 
+                linechanfreqs.append(spw_chan_freq_list)
+        else:
+            if linefreq >= np.min(spw_chan_freq_list) and linefreq <= np.max(spw_chan_freq_list):
+                # found our target line within this spw
+                ref_freq_Hz = spw_ref_freq
+                linespws.append(i)
+                linechanwidths.append(spw_chan_width_list) # append all valid spw 
+                linechanfreqs.append(spw_chan_freq_list)
     
     if len(linespws) == 0:
-        raise ValueError('Error! Target line %s at rest-frame %.3f GHz was not covered by the "SPECTRAL_WINDOW" of the input vis "%s"!'%(lab_line_name, lab_line_freq, dataset_ms))
+        #raise ValueError('Error! Target line %s at rest-frame %.3f GHz was not covered by the "SPECTRAL_WINDOW" of the input vis "%s"!'%(lab_line_name, lab_line_freq, dataset_ms))
+        raise ValueError('Error! Target line %s was not covered by any "SPECTRAL_WINDOW" in the input vis "%s"!'%(line_name, dataset_ms))
     
     # if we have multiple spw and some linechanwidth do not match, then we only use the best linechanwidth spw
     valid_linespws_indicies = []
@@ -744,8 +752,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     
     linespws = [linespws[i] for i in valid_linespws_indicies]
     linechanwidths = [linechanwidths[i] for i in valid_linespws_indicies]
-    #linechanfreq = linechanfreq[valid_linespws_indicies]
-    #linechanfreqs = linechanfreqs[valid_linespws_indicies]
+    linechanfreqs = linechanfreqs[valid_linespws_indicies]
     
     # make numpy array
     linespws = np.array(linespws)
@@ -767,6 +774,37 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     #print2('chanbin = %s'%(chanbin))
     #chanaverage = True
     #chanbin = chanbin
+    
+    # 
+    # Check line_velocity_width, if user has input a non-positive value, then we find the maximum covered frequency range for this line.
+    # 
+    if line_velocity_width <= 0:
+        min_chanfreq = np.nan
+        max_chanfreq = np.nan
+        min_chanfreq_spw_index = -1
+        max_chanfreq_spw_index = -1
+        for i in range(len(linespws)):
+            if np.isnan(min_chanfreq):
+                min_chanfreq = np.min(linechanfreqs)
+                min_chanfreq_spw_index = i
+            else:
+                if np.min(linechanfreqs) < min_chanfreq:
+                    min_chanfreq = np.min(linechanfreqs)
+                    min_chanfreq_spw_index = i
+            if np.isnan(max_chanfreq):
+                max_chanfreq = np.max(linechanfreqs)
+                max_chanfreq_spw_index = i
+            else:
+                if np.max(linechanfreqs) > max_chanfreq:
+                    max_chanfreq = np.max(linechanfreqs)
+                    max_chanfreq_spw_index = i
+        # compute line velocity width from min max channel frequencies
+        line_velocity_width = (max_chanfreq - min_chanfreq) / ref_freq_Hz * 2.99792458e5 # km/s
+        # print warning if there are multiple spws
+        if len(linespws) > 1:
+            print2('Warning! Setting line velocity to %s km/s, according to the bandwidth from spw %s to %s.'%(line_velocity_width, linespws[min_chanfreq_spw_index], linespws[max_chanfreq_spw_index]))
+        else:
+            print2('Setting line velocity to %s km/s, according to the bandwidth of spw %s.'%(line_velocity_width, linespws[max_chanfreq_spw_index]))
     
     # 
     # nchan and start and width
@@ -823,7 +861,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     mstransform_parameters['outframe'] = 'LSRK'
     mstransform_parameters['veltype'] = 'radio'
     mstransform_parameters['timeaverage'] = True
-    mstransform_parameters['timebin'] = '60s'
+    mstransform_parameters['timebin'] = '30s'
     # 
     # Reset tclean parameters
     # 
@@ -1666,6 +1704,7 @@ def dzliu_clean(dataset_ms,
                 line_velocity = None, 
                 line_velocity_width = None, 
                 line_velocity_resolution = None, 
+                clean_threshold_cube = None, 
                 clean_threshold_continuum = None, 
                 overwrite = False):
     # 
@@ -1757,6 +1796,15 @@ def dzliu_clean(dataset_ms,
         # Compute rms in the dirty image
         result_imstat_dict = imstat(line_dirty_cube+'.image')
         threshold = result_imstat_dict['rms'][0] * 3.0 #<TODO># 3-sigma
+        if clean_threshold_cube is not None:
+            if type(clean_threshold_cube) is str and str(clean_threshold_cube).find('Jy') >= 0:
+                threshold = str(clean_threshold_cube)
+            else:
+                try:
+                    float(clean_threshold_cube)
+                    threshold = result_imstat_dict['rms'][0] * float(clean_threshold_cube)
+                except:
+                    raise Exception('Error! Could not parse the input clean_threshold_cube %s!'%(clean_threshold_cube))
         # 
         # Make clean image
         make_clean_image(line_ms, line_clean_cube, phasecenter = phasecenter, threshold = threshold, pblimit = 0.05, pbmask = 0.05, beamsize = beamsize, robust = robust)
@@ -1790,13 +1838,13 @@ def dzliu_clean(dataset_ms,
         threshold = result_imstat_dict['rms'][0] * 1.0 #<TODO># 1.0-sigma
         if clean_threshold_continuum is not None:
             if type(clean_threshold_continuum) is str and str(clean_threshold_continuum).find('Jy') >= 0:
-                threshold = clean_threshold_continuum
+                threshold = str(clean_threshold_continuum)
             else:
                 try:
                     float(clean_threshold_continuum)
                     threshold = result_imstat_dict['rms'][0] * float(clean_threshold_continuum)
                 except:
-                    raise Exception('Error! Could not prase the input clean_threshold_continuum %s!'%(clean_threshold_continuum))
+                    raise Exception('Error! Could not parse the input clean_threshold_continuum %s!'%(clean_threshold_continuum))
         # 
         # Make clean image of the rough continuum 
         make_clean_image_of_continuum(continuum_ms, continuum_clean_cube, phasecenter = phasecenter, threshold = threshold, pblimit = 0.05, pbmask = 0.05, beamsize = beamsize, robust = robust)
