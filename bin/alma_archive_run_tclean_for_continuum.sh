@@ -66,6 +66,7 @@ if [[ -f "$data_dir/run_tclean/list_of_images.json" ]]; then
     echo "Output to \"$data_dir/run_tclean/list_of_images.json\" which contains the list of cleaned continuum images."
 else
     echo "Error occurred! Please check the log!"
+    exit 255
 fi
 
 
