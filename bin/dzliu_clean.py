@@ -813,7 +813,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     if line_velocity_resolution > 0:
         # if the user has input a positive line_velocity_resolution, then we convert it to channel width factor
         mode = 'frequency'
-        width_channel_number = line_velocity_resolution / np.abs(linechanwidth_kms[0])
+        width_channel_number = line_velocity_resolution / np.abs(linechanwidth_kms)
         width_channel_number = int(np.round(width_channel_number)) # in units of channel number, like a rebin factor
         width_freq_Hz = width_channel_number * linechanwidth
         width = '%.0fHz'%(width_freq_Hz)
