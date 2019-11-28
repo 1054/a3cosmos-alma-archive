@@ -53,7 +53,8 @@ def go(vis):
         
         field = field.strip()
         
-        final_output_image = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%s.cont.I.image.fits'%(project, SB, GB, MB, field, '_'.join(np.array(spw_ids).astype(str))), 
+        final_output_image = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%s.cont.I.image.fits'%(project, SB, GB, MB, field, '_'.join(np.array(spw_ids).astype(str).tolist())), 
+        print('final_output_image', final_output_image)
         
         if not os.path.isfile(final_output_image):
             dzliu_clean.dzliu_clean(vis, 
