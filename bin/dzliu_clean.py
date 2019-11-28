@@ -752,7 +752,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     
     linespws = [linespws[i] for i in valid_linespws_indicies]
     linechanwidths = [linechanwidths[i] for i in valid_linespws_indicies]
-    linechanfreqs = linechanfreqs[valid_linespws_indicies]
+    linechanfreqs = [linechanfreqs[i] for i in valid_linespws_indicies]
     
     # make numpy array
     linespws = np.array(linespws)
