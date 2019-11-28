@@ -30,11 +30,11 @@ def go(vis):
     paths = os.path.abspath(vis).split(os.sep)
     if len(paths) < 7:
         raise Exception('Error! The absolute path of the input data "%s" seems do not contain project, SB, GB, MB paths!'%(vis))
-    project = paths[-8]
-    SB = paths[-7].split('_')[-1]
-    GB = paths[-6].split('_')[-1]
-    MB = paths[-5].split('_')[-1]
-    calibrated_dir = paths[-4] # projec/SB/GB/MB/calibrated/run_tclean/vis.ms
+    project = paths[-7]
+    SB = paths[-6].split('_')[-1]
+    GB = paths[-5].split('_')[-1]
+    MB = paths[-4].split('_')[-1]
+    calibrated_dir = paths[-3] # projec/SB/GB/MB/calibrated/run_tclean/vis.ms
     
     fields, phasecenters = dzliu_clean.get_all_fields(vis)
     
