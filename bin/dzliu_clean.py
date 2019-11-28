@@ -303,7 +303,7 @@ def get_all_fields(vis):
     # 
     # Requires CASA module/function tb.
     # 
-    casalog.origin('get_field_phasecenters')
+    casalog.origin('get_all_fields')
     # 
     tb.open(vis+os.sep+'FIELD')
     field_names = tb.getcol('NAME')
@@ -311,6 +311,36 @@ def get_all_fields(vis):
     tb.close()
     # 
     return field_names, field_phasecenters
+
+
+
+# 
+# def get all spws
+# 
+def get_all_spws(vis):
+    # 
+    # Requires CASA module/function tb.
+    # 
+    casalog.origin('get_all_spws')
+    # 
+    tb.open(vis+os.sep+'SPECTRAL_WINDOW')
+    tb.open(dataset_ms+os.sep+'SPECTRAL_WINDOW')
+    spw_names = tb.getcol('NAME')
+    spw_chan_freq_col = [tb.getcell('CHAN_FREQ', i) for i in range(tb.nrows())]
+    spw_chan_width_col = [tb.getcell('CHAN_WIDTH', i) for i in range(tb.nrows())]
+    spw_ref_freq_col = tb.getcol('REF_FREQUENCY')
+    tb.close()
+    
+    valid_spw_indicies = np.argwhere([re.match(r'.*FULL_RES.*', t) is not None for t in spw_names]).flatten().tolist()
+    if len(valid_spw_indicies) == 0:
+        valid_spw_indicies = np.argwhere([re.match(r'.*WVR.*', t) is None for t in spw_names]).flatten().tolist()
+    if len(valid_spw_indicies) == 0:
+        raise Exception('Error! No valid spw in the input dataset "%s"! spw_names = %s'%(vis, spw_names))
+    # 
+    valid_spw_names = [spw_names[t] for t in valid_spw_indicies]
+    valid_spw_ref_freqs = [spw_ref_freq_col[t] for t in valid_spw_indicies]
+    # 
+    return valid_spw_indicies, valid_spw_names, valid_spw_ref_freqs
 
 
 
@@ -839,7 +869,7 @@ def arcsec2float(arcsec_str):
 # 
 def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter = 30000, calcres = True, calcpsf = True, 
                              phasecenter = '', field = '', pbmask = 0.2, pblimit = 0.1, threshold = 0.0, specmode = 'cube', 
-                             beamsize = ''):
+                             beamsize = '', robust = ''):
     # 
     # Requires CASA module/function tb.
     # 
@@ -1051,6 +1081,10 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     clean_parameters['niter'] = niter
     clean_parameters['calcres'] = calcres
     clean_parameters['calcpsf'] = calcpsf
+    
+    if robust != '':
+        clean_parameters['weighting'] = 'briggs'
+        clean_parameters['robust'] = robust
     
     # 
     # Check mpicasa
@@ -1613,6 +1647,7 @@ def dzliu_clean(dataset_ms,
                 make_continuum = True, 
                 phasecenter = '', 
                 beamsize = '', 
+                robust = '', 
                 line_name = None, 
                 line_velocity = None, 
                 line_velocity_width = None, 
@@ -1703,14 +1738,14 @@ def dzliu_clean(dataset_ms,
         split_line_visibilities(dataset_ms, line_ms, galaxy_name, line_name[i], line_velocity[i], line_velocity_width[i], line_velocity_resolution[i])
         # 
         # Make dirty image
-        make_dirty_image(line_ms, line_dirty_cube, phasecenter = phasecenter, beamsize = beamsize)
+        make_dirty_image(line_ms, line_dirty_cube, phasecenter = phasecenter, beamsize = beamsize, robust = robust)
         #
         # Compute rms in the dirty image
         result_imstat_dict = imstat(line_dirty_cube+'.image')
         threshold = result_imstat_dict['rms'][0] * 3.0 #<TODO># 3-sigma
         # 
         # Make clean image
-        make_clean_image(line_ms, line_clean_cube, phasecenter = phasecenter, threshold = threshold, pblimit = 0.05, pbmask = 0.05, beamsize = beamsize)
+        make_clean_image(line_ms, line_clean_cube, phasecenter = phasecenter, threshold = threshold, pblimit = 0.05, pbmask = 0.05, beamsize = beamsize, robust = robust)
     
     # 
     # Make continuum image
@@ -1734,15 +1769,14 @@ def dzliu_clean(dataset_ms,
         split_continuum_visibilities(dataset_ms, continuum_ms, galaxy_name, galaxy_redshift = galaxy_redshift, line_name = line_name, line_velocity = line_velocity, line_velocity_width = line_velocity_width)
         # 
         # Make continuum
-        make_dirty_image_of_continuum(continuum_ms, continuum_dirty_cube, phasecenter = phasecenter, beamsize = beamsize)
+        make_dirty_image_of_continuum(continuum_ms, continuum_dirty_cube, phasecenter = phasecenter, beamsize = beamsize, robust = robust)
         #
         # Compute rms in the dirty image
         result_imstat_dict = imstat(continuum_dirty_cube+'.image')
         threshold = result_imstat_dict['rms'][0] * 1.0 #<TODO># 1.0-sigma
         if clean_threshold_continuum is not None:
-            if type(clean_threshold_continuum) is str:
-                if clean_threshold_continuum.find('Jy') >= 0:
-                    threshold = clean_threshold_continuum
+            if type(clean_threshold_continuum) is str and str(clean_threshold_continuum).find('Jy') >= 0:
+                threshold = clean_threshold_continuum
             else:
                 try:
                     float(clean_threshold_continuum)
@@ -1751,7 +1785,7 @@ def dzliu_clean(dataset_ms,
                     raise Exception('Error! Could not prase the input clean_threshold_continuum %s!'%(clean_threshold_continuum))
         # 
         # Make clean image of the rough continuum 
-        make_clean_image_of_continuum(continuum_ms, continuum_clean_cube, phasecenter = phasecenter, threshold = threshold, pblimit = 0.05, pbmask = 0.05, beamsize = beamsize)
+        make_clean_image_of_continuum(continuum_ms, continuum_clean_cube, phasecenter = phasecenter, threshold = threshold, pblimit = 0.05, pbmask = 0.05, beamsize = beamsize, robust = robust)
 
 
 
