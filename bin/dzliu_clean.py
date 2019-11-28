@@ -816,7 +816,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
         mode = 'frequency'
         width_channel_number = line_velocity_resolution / np.abs(linechanwidth_kms)
         width_channel_number = int(np.round(width_channel_number)) # in units of channel number, like a rebin factor
-        width_freq_Hz = width_channel_number * linechanwidth
+        width_freq_Hz = width_channel_number * np.abs(linechanwidth)
         width = '%.0fHz'%(width_freq_Hz)
         start_freq_Hz = linefreq - 0.5*(line_velocity_width/2.99792458e5)*ref_freq_Hz #<TODO># lowest freq (as document says) or left-most freq (depending on positive/negative chanwidth)?
         start = '%.0fHz'%(start_freq_Hz)
@@ -829,7 +829,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
         # otherwise keep the original channel width
         mode = 'channel'
         width_channel_number = 1
-        width_freq_Hz = width_channel_number * linechanwidth
+        width_freq_Hz = width_channel_number * np.abs(linechanwidth)
         width = 1
         start_freq_Hz = linefreq - 0.5*(line_velocity_width/2.99792458e5)*ref_freq_Hz #<TODO># lowest freq (as document says) or left-most freq (depending on positive/negative chanwidth)?
         start = (start_freq_Hz - ref_freq_Hz) / width_freq_Hz
