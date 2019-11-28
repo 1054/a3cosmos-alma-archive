@@ -77,9 +77,9 @@ def go(vis):
                 #   '%s_cont.image.fits'%(field)
                 # 
                 if not os.path.isfile('%s_cont_clean.image.fits'%(field)):
-                print('Error! Failed to produce "%s/%s"! Will skip this one and try to continue..'%(os.path.abspath(os.getcwd()), '%s_cont_clean.image.fits'%(field)))
-                failed_fields.append(field)
-                continue
+                    print('Error! Failed to produce "%s/%s"! Will skip this one and try to continue..'%(os.path.abspath(os.getcwd()), '%s_cont_clean.image.fits'%(field)))
+                    failed_fields.append(field)
+                    continue
             
             shutil.copy('%s_cont_clean.image.fits'%(field), final_output_image)
             print('Output to "%s"'%(final_output_image))
