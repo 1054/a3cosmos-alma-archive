@@ -330,7 +330,10 @@ def get_all_spws(vis):
     spw_ref_freq_col = tb.getcol('REF_FREQUENCY')
     tb.close()
     
-    valid_spw_indicies = np.argwhere([re.match(r'.*FULL_RES.*', t) is not None for t in spw_names]).flatten().tolist()
+    valid_spw_indicies = np.argwhere(np.logical_and([re.match(r'.*FULL_RES.*', t) is not None for t in spw_names],
+                                                    [re.match(r'X0000000000.*', t) is None for t in spw_names])).flatten().tolist()
+    if len(valid_spw_indicies) == 0:
+        valid_spw_indicies = np.argwhere([re.match(r'.*FULL_RES.*', t) is not None for t in spw_names]).flatten().tolist()
     if len(valid_spw_indicies) == 0:
         valid_spw_indicies = np.argwhere([re.match(r'.*WVR.*', t) is None for t in spw_names]).flatten().tolist()
     if len(valid_spw_indicies) == 0:
@@ -414,7 +417,7 @@ def find_lab_line_name_and_freq(line_name = ''):
 # def split_continuum_visibilities
 # 
 #   NOTE: mstransform does not support multiple channel ranges per spectral window (';'). -- https://casa.nrao.edu/docs/taskref/mstransform-task.html
-#   so now I use split() and average bins in each spw, then produce a ms with multiple spws, each spw has only single channel. 
+#   so now I use split() and average bins in each spw, then produce a ms with multiple spws, each spw has only a single channel. 
 # 
 def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_redshift = None, line_name = None, line_velocity = None, line_velocity_width = None):
     # 
@@ -628,7 +631,7 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
             split(**split_parameters)
             
             if not os.path.isdir(split_spw_ms):
-                raise Exception('Error! Failed to run split and produce "%s"!'%(split_spw_ms))
+                raise Exception('Error! Failed to run split and produce "%s"!'%(os.path.abspath(split_spw_ms)))
             else:
                 print2('Output to "%s"!'%(split_spw_ms))
         
@@ -645,7 +648,7 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
     concat(**concat_parameters)
     
     if not os.path.isdir(output_ms):
-        raise Exception('Error! Failed to run mstransform and produce "%s"!'%(output_ms))
+        raise Exception('Error! Failed to run mstransform and produce "%s"!'%(os.path.abspath(output_ms)))
     else:
         print2('Output to "%s"!'%(output_ms))
     
@@ -836,7 +839,7 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     mstransform(**mstransform_parameters)
     
     if not os.path.isdir(output_ms):
-        raise Exception('Error! Failed to run mstransform and produce "%s"!'%(output_ms))
+        raise Exception('Error! Failed to run mstransform and produce "%s"!'%(os.path.abspath(output_ms)))
 
 
 
