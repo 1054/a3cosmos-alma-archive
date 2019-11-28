@@ -39,8 +39,11 @@ def go(vis):
     
     fields, phasecenters = dzliu_clean.get_all_fields(vis)
     
-    spw_ids, spw_names, spw_ref_freqs = dzliu_clean.get_all_spws(vis)
+    spw_ids, spw_names, spw_chan_widths, spw_ref_freqs = dzliu_clean.get_all_spws(vis)
     print('spw_ids = %s'%(str(spw_ids)))
+    print('spw_names = %s'%(str(spw_names)))
+    print('spw_chan_widths = %s'%(str(spw_chan_widths)))
+    print('spw_ref_freqs = %s'%(str(spw_ref_freqs)))
     
     list_of_images = []
     if os.path.isfile('list_of_images.json'):
@@ -60,6 +63,7 @@ def go(vis):
         if not os.path.isfile(final_output_image):
             dzliu_clean.dzliu_clean(vis, 
                                     output_image = '%s'%(field), 
+                                    galaxy_name = field, 
                                     make_line_cube = False, 
                                     make_continuum = True, 
                                     beamsize = 'common', 
@@ -71,7 +75,7 @@ def go(vis):
             #   '%s_cont.image.fits'%(field)
             # 
             if not os.path.isfile('%s_cont_clean.image.fits'%(field)):
-                print('Error! Failed to produce "%s"! Will skip this one and try to continue..'%('%s_cont_clean.image.fits'%(field)))
+                print('Error! Failed to produce "%s/%s"! Will skip this one and try to continue..'%(os.getcwd(), '%s_cont_clean.image.fits'%(field)))
                 continue
             else:
                 shutil.copy('%s_cont_clean.image.fits'%(field), final_output_image)

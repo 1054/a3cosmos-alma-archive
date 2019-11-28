@@ -337,9 +337,10 @@ def get_all_spws(vis):
         raise Exception('Error! No valid spw in the input dataset "%s"! spw_names = %s'%(vis, spw_names))
     # 
     valid_spw_names = [spw_names[t] for t in valid_spw_indicies]
+    valid_spw_chan_widths = [spw_chan_width_col[t] for t in valid_spw_indicies]
     valid_spw_ref_freqs = [spw_ref_freq_col[t] for t in valid_spw_indicies]
     # 
-    return valid_spw_indicies, valid_spw_names, valid_spw_ref_freqs
+    return valid_spw_indicies, valid_spw_names,valid_spw_chan_widths, valid_spw_ref_freqs
 
 
 
