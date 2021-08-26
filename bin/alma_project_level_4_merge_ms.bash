@@ -1,0 +1,223 @@
+#!/bin/bash
+# 
+
+#source ~/Softwares/CASA/SETUP.bash 5.4.0
+#source ~/Softwares/GILDAS/SETUP.bash
+#source ~/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash
+
+
+# read input Project_code
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: "
+    echo "    alma_project_level_4_copy_uvfits.bash Project_code [-dataset DataSet_01]"
+    echo "Example: "
+    echo "    alma_project_level_4_copy_uvfits.bash 2013.1.00034.S"
+    echo "Notes: "
+    echo "    This code will copy uvfits files from \"Level_3_Split\" to \"Level_4_Data_uvfits\" classified by source names."
+    exit
+fi
+
+Project_code="$1"; shift
+
+# read user input
+iarg=1
+width="25km/s"
+select_dataset=()
+output_folder="Level_4_Data_merged_ms"
+while [[ $iarg -le $# ]]; do
+    istr=$(echo ${!iarg} | tr '[:upper:]' '[:lower:]')
+    if [[ "$istr" == "-width" ]] && [[ $((iarg+1)) -le $# ]]; then
+        iarg=$((iarg+1)); width="${!iarg}"; echo "Setting width=\"${!iarg}\""
+    fi
+    if [[ "$istr" == "-dataset" ]] && [[ $((iarg+1)) -le $# ]]; then
+        iarg=$((iarg+1)); select_dataset+=("${!iarg}"); echo "Selecting \"${!iarg}\""
+    fi
+    if [[ "$istr" == "-out" ]] && [[ $((iarg+1)) -le $# ]]; then
+        iarg=$((iarg+1)); output_folder="${!iarg}"; echo "Outputting to \"${!iarg}\""
+    fi
+    iarg=$((iarg+1))
+done
+
+# define logging files and functions
+error_log_file="$(pwd)/.$(basename ${BASH_SOURCE[0]}).err"
+output_log_file="$(pwd)/.$(basename ${BASH_SOURCE[0]}).log"
+if [[ -f "$error_log_file" ]]; then mv "$error_log_file" "$error_log_file.2"; fi
+if [[ -f "$output_log_file" ]]; then mv "$output_log_file" "$output_log_file.2"; fi
+
+echo_output()
+{
+    echo "$@"
+    echo "["$(date "+%Y%m%dT%H%M%S")"]" "$@" >> "$output_log_file"
+}
+
+echo_error()
+{
+    echo "*************************************************************"
+    echo "$@"
+    echo "["$(date "+%Y%m%dT%H%M%S")"]" "$@" >> "$error_log_file"
+    echo "["$(date "+%Y%m%dT%H%M%S")"]" "$@" >> "$output_log_file"
+    echo "*************************************************************"
+}
+
+
+# begin
+echo_output "Began processing ALMA project ${Project_code} with $(basename ${BASH_SOURCE[0]})"
+
+
+# check meta data table file
+if [[ ! -f "meta_data_table.txt" ]]; then
+    echo_error "Error! \"meta_data_table.txt\" was not found! Please run previous steps first!"
+    exit 255
+fi
+
+
+# check Level_3_Split folder
+if [[ ! -d Level_3_Split ]]; then 
+    echo_error "Error! \"Level_3_Split\" does not exist! Please run previous steps first!"
+    exit 255
+fi
+
+
+# read Level_3_Split/DataSet_*
+if [[ ${#select_dataset[@]} -eq 0 ]]; then
+    # if user has not input -dataset, then process all datasets
+    list_of_datasets=($(ls -1d Level_3_Split/DataSet_* | sort -V))
+else
+    list_of_datasets=()
+    for (( i = 0; i < ${#select_dataset[@]}; i++ )); do
+        if [[ ! -d "Level_3_Split/${select_dataset[i]}" ]]; then
+            echo "Error! \"Level_3_Split/${select_dataset[i]}\" was not found!"
+            exit
+        fi
+        list_of_datasets+=($(ls -1d "Level_3_Split/${select_dataset[i]}"))
+    done
+fi
+
+
+# prepare output folder
+if [[ ! -d "${output_folder}" ]]; then 
+    mkdir "${output_folder}"
+fi
+echo_output cd "${output_folder}"
+cd "${output_folder}"
+
+
+# loop datasets and run CASA split then GILDAS importuvfits
+for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
+    
+    DataSet_dir=$(basename ${list_of_datasets[i]})
+    
+    # print message
+    echo_output "Checking \"../Level_3_Split/$DataSet_dir\""
+    
+    # check Level_3_Split DataSet_dir
+    if [[ ! -d ../Level_3_Split/$DataSet_dir ]]; then
+        echo_error "Error! \"../Level_3_Split/$DataSet_dir\" was not found! Please run Level_3_Split first! We will skip this dataset for now."
+        continue
+    fi
+    
+    # prepare Level_4_Data_uvfits DataSet_dir
+    #if [[ ! -d $DataSet_dir ]]; then
+    #    mkdir $DataSet_dir
+    #fi
+    #echo_output cd $DataSet_dir
+    #cd $DataSet_dir
+    
+    # select width
+    if [[ x"${width}" == x*"km/s" ]] || [[ x"${width}" == x*"KM/S" ]]; then
+        width_val=$(echo "${width}" | sed -e 's%km/s%%g' | sed -e 's%KM/S%%g')
+        width_str="${width_val}kms"
+    else
+        width_str="${width}"
+    fi
+    
+    # print message
+    echo_output "Now sorting out unique sources for \"../Level_3_Split/$DataSet_dir/split_*_spw*_width${width_str}.ms\""
+    
+    # read source names
+    list_of_unique_source_names=($(ls -1d ../Level_3_Split/$DataSet_dir/split_*_spw*_width${width_str}.ms | perl -p -e 's%.*split_(.*?)_spw[0-9]+_width[0-9kms]+.ms$%\1%g' | sort -V | uniq ) )
+    if [[ ${#list_of_unique_source_names[@]} -eq 0 ]]; then
+        echo_error "Error! Failed to find \"../Level_3_Split/$DataSet_dir/split_*_spw*_width${width_str}.ms\" and get unique source names!"
+        exit 255
+    fi
+    
+    # loop list_of_unique_source_names and make dir for each source and copy uvfits files
+    for (( j = 0; j < ${#list_of_unique_source_names[@]}; j++ )); do
+        source_name=${list_of_unique_source_names[j]}
+        if [[ ! -d "${source_name}" ]]; then
+            echo_output mkdir "${source_name}"
+            mkdir "${source_name}"
+        fi
+        list_of_filenames=($(ls -1d ../Level_3_Split/$DataSet_dir/split_"${source_name}"_spw*_width${width_str}.ms))
+        for (( k = 0; k < ${#list_of_filenames[@]}; k++ )); do
+            outfilename="${DataSet_dir}"_$(basename "${list_of_filenames[k]}")
+            echo_output cd "${source_name}"
+            cd "${source_name}"
+            if [[ ! -d "${outfilename}" ]] && [[ ! -L "${outfilename}" ]]; then
+                echo_output ln -fsT ../../Level_3_Split/$DataSet_dir/"${list_of_filenames[k]}" "${outfilename}"
+                ln -fsT ../../Level_3_Split/$DataSet_dir/"${list_of_filenames[k]}" "${outfilename}"
+            fi
+            echo_output cd "../"
+            cd "../"
+        done
+    done
+    
+    # cd back
+    #echo_output "cd ../"
+    #cd ../
+    
+    # print message
+    if [[ $i -gt 0 ]]; then
+        echo ""
+        #echo ""
+    fi
+    
+done
+
+
+
+# loop each source again to combine 
+list_of_sources=($(find . -type d -maxdepth 1 -mindepth 1))
+for (( i = 0; i < ${#list_of_sources[@]}; i++ )); do
+    source_name=$(basename "${list_of_sources[i]}")
+    if [[ "${source_name}" != "."* ]]; then
+        echo_output cd "${source_name}"
+        cd "${source_name}"
+        # 
+        list_of_filenames=($(ls -1d *_split_"${source_name}"_spw*_width${width_str}.ms))
+        if [[ ${#list_of_filenames[@]} -gt 0 ]]; then
+            echo_output "Combining ${#list_of_filenames[@]} ms data..."
+            # 
+            #<TODO><20200321>#
+            # 
+        fi
+        # 
+        echo_output cd "../"
+        cd "../"
+    fi
+done
+
+
+
+
+echo_output "cd ../"
+cd ../
+
+
+# finish
+echo_output "Finished processing ALMA project ${Project_code} with $(basename ${BASH_SOURCE[0]})"
+echo_output ""
+echo_output ""
+
+
+# 
+# common data directory structure:
+# Level_1_Raw
+# Level_2_Calib
+# Level_3_Split
+# Level_4_Data_uvfits
+# Level_4_Data_uvt
+# Level_4_Run_clean
+# Level_4_Run_uvfit
+# Level_5_Sci

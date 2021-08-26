@@ -15,6 +15,9 @@ function start_session {
   if [[ $# -ge 1 ]]; then export USERNAME="$1"; else export USERNAME="anonymous"; fi #<Added><dzliu># 
   if [[ $# -ge 2 ]]; then export PASSWORD="$2"; else export PASSWORD="invalid"; fi #<Added><dzliu># 
   export AUTHENTICATION_STATUS=0
+  if [[ "${USERNAME}"x == ""x ]]; then
+    USERNAME="anonymous"
+  fi
   if [ "${USERNAME}" != "anonymous" ]; then
     if [ "${PASSWORD}" == "invalid" ]; then
       echo ""
@@ -127,7 +130,8 @@ if [[ $AUTHENTICATION_STATUS -eq 0 ]]; then
           USERNAME_FROM_URL=$(echo "${!i}" | perl -p -e "s%http.*/requests/([a-zA-Z0-9_]+)/.*%\1%g")
           
           # get USERNAME from URL
-          if [[ x"$USERNAME_FROM_URL" != x"" ]]; then
+          #if [[ x"$USERNAME_FROM_URL" != x"" ]]; then #<20210219><DZLIU># fixing issue
+          if [[ x"$USERNAME_FROM_URL" != x"" ]] && [[ x"$USERNAME_FROM_URL" != x"${!i}" ]]; then
               if [[ "$USERNAME_FROM_URL" != "$USERNAME" ]]; then
                   echo "Username from the download link is $USERNAME_FROM_URL!"
                   echo "We will start the download session with this username!"

@@ -693,10 +693,10 @@ def dzliu_linear_mosaic(input_image_name_list, output_fits_cube):
                                                         [fits_header['NAXIS1']+0.5, 0.5]], 
                                                        1) # lower-left, and upper-right.
                                                           # pixel corners are 0.5, 0.5! see -- https://docs.astropy.org/en/stable/_modules/astropy/wcs/wcs.html
-        print2('fits_corner_coords[%d][00][RA,Dec] = %.10f, %.10f'%(i, fits_corner_coords[0][0], fits_corner_coords[0][1]))
-        print2('fits_corner_coords[%d][11][RA,Dec] = %.10f, %.10f'%(i, fits_corner_coords[1][0], fits_corner_coords[1][1]))
-        print2('fits_corner_coords[%d][01][RA,Dec] = %.10f, %.10f'%(i, fits_corner_coords[2][0], fits_corner_coords[2][1]))
-        print2('fits_corner_coords[%d][10][RA,Dec] = %.10f, %.10f'%(i, fits_corner_coords[3][0], fits_corner_coords[3][1]))
+        print2('fits_corner_coords[%d][00][RA,Dec] = %.10f, %.10f, image = %r'%(i, fits_corner_coords[0][0], fits_corner_coords[0][1], input_fits_cube_list[i]))
+        print2('fits_corner_coords[%d][11][RA,Dec] = %.10f, %.10f, image = %r'%(i, fits_corner_coords[1][0], fits_corner_coords[1][1], input_fits_cube_list[i]))
+        print2('fits_corner_coords[%d][01][RA,Dec] = %.10f, %.10f, image = %r'%(i, fits_corner_coords[2][0], fits_corner_coords[2][1], input_fits_cube_list[i]))
+        print2('fits_corner_coords[%d][10][RA,Dec] = %.10f, %.10f, image = %r'%(i, fits_corner_coords[3][0], fits_corner_coords[3][1], input_fits_cube_list[i]))
         fits_header_list.append(copy.copy(fits_header))
         fits_wcs_2D_list.append(copy.copy(fits_wcs_2D))
         fits_pixscale_list.append(proj_plane_pixel_scales(fits_wcs_2D)[1]*3600.0) # arcsec
