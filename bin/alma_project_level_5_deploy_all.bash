@@ -23,11 +23,21 @@ if [[ $(echo $Project_code | perl -p -e 's/[0-9]{4}\.[0-9]\.[0-9]{5}\.[A-Z]/OK/g
         exit 255
     fi
 
-    alma_project_level_5_deploy_uvfits.bash $Project_code ../../uvfits
+    if [[ ! -f done_deploying_meta_table ]]; then
+        alma_project_level_5_deploy_meta_table.bash $Project_code ../../meta_tables
+    fi
+    
+    if [[ ! -f done_deploying_uvfits ]]; then
+        alma_project_level_5_deploy_uvfits.bash $Project_code ../../uvfits
+    fi
 
-    alma_project_level_5_deploy_fits_images.bash $Project_code ../../images
+    if [[ ! -f done_deploying_fits_images ]]; then
+        alma_project_level_5_deploy_fits_images.bash $Project_code ../../images
+    fi
 
-    alma_project_level_5_deploy_fits_image_cubes.bash $Project_code ../../images
+    if [[ ! -f done_deploying_fits_image_cubes ]]; then
+        alma_project_level_5_deploy_fits_image_cubes.bash $Project_code ../../images
+    fi
 
 fi
 
