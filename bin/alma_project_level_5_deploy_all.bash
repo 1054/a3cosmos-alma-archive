@@ -27,6 +27,10 @@ if [[ $(echo $Project_code | perl -p -e 's/[0-9]{4}\.[0-9]\.[0-9]{5}\.[A-Z]/OK/g
         alma_project_level_5_deploy_meta_table.bash $Project_code ../../meta_tables
     fi
     
+    if [[ ! -f done_deploying_calibrated_ms ]]; then
+        alma_project_level_5_deploy_calibrated_ms.bash $Project_code ../../uvdata
+    fi
+    
     if [[ ! -f done_deploying_uvfits ]]; then
         alma_project_level_5_deploy_uvfits.bash $Project_code ../../uvfits
     fi
