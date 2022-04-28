@@ -8,6 +8,8 @@ Project_code=$(basename $(pwd) | cut -b 1-14)
 
 if [[ $(echo $Project_code | perl -p -e 's/[0-9]{4}\.[0-9]\.[0-9]{5}\.[A-Z]/OK/g') == OK ]]; then
     
+    echo "ps aux | grep \"alma_project_level_5_deploy\" | grep -v \"grep\""
+    ps aux | grep "alma_project_level_5_deploy" | grep -v "grep"
     if [[ $(ps aux | grep "alma_project_level_5_deploy" | grep -v "grep" | wc -l) -gt 1 ]]; then
         echo "There are existing processes running \"alma_project_level_5_deploy\"! We can not run this process at the same time!"
         exit 255
