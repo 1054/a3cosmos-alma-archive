@@ -4,7 +4,7 @@ set -e
 
 # Check user input
 
-if [[ $# -lt 5 ]]; then
+if [[ $# -lt 3 ]]; then
     echo "Usage: "
     echo "    alma_project_level_5_retrieve_calibrated_ms.bash Datamining_dir Project_code Retrieve_dir"
     exit
@@ -46,18 +46,6 @@ Current_dir=$(pwd -P)
 echo "cd \"$Retrieve_dir\""
 cd "$Retrieve_dir"
 
-if [[ -f "$Datamining_dir/meta_tables/meta_data_table_for_${Project_code}.txt" ]]; then
-    echo "cp \"$Datamining_dir/meta_tables/meta_data_table_for_${Project_code}.txt\" meta_data_table.txt"
-    cp "$Datamining_dir/meta_tables/meta_data_table_for_${Project_code}.txt" meta_data_table.txt
-else
-    echo "alma_archive_query_by_project_code.py ${Project_code}"
-    alma_archive_query_by_project_code.py ${Project_code}
-fi
-
-echo "alma_archive_make_data_dirs_with_meta_table.py alma_archive_query_by_project_code_${Project_code}.txt -out meta_data_table.txt"
-alma_archive_make_data_dirs_with_meta_table.py alma_archive_query_by_project_code_${Project_code}.txt -out meta_data_table.txt
-
-
 
 # check paths
 
@@ -89,10 +77,30 @@ if [[ "$Datamining_dir" == "/"* ]]; then
     $ln_command -fsT "$Datamining_dir/uvdata/${Project_code}" Level_1_Raw/${Project_code}
 else
     # relative path
-    echo "$ln_command -fsT \"../../$Datamining_dir/uvdata/${Project_code}\" Level_1_Raw/${Project_code}"
-    $ln_command -fsT "../../$Datamining_dir/uvdata/${Project_code}" Level_1_Raw/${Project_code}
+    if [[ "$Retrieve_dir" == *"/"* ]]; then
+        # retrieve dir is an absolute path
+        $ln_command -fsT "$Current_dir/$Datamining_dir/uvdata/${Project_code}" Level_1_Raw/${Project_code}
+    else
+        # retrieve dir is a relative path
+        echo "$ln_command -fsT \"../../$Datamining_dir/uvdata/${Project_code}\" Level_1_Raw/${Project_code}"
+        $ln_command -fsT "../../$Datamining_dir/uvdata/${Project_code}" Level_1_Raw/${Project_code}
+    fi
 fi
 
+
+# check meta table
+
+if [[ -f "$Datamining_dir/meta_tables/meta_data_table_for_${Project_code}.txt" ]]; then
+    echo "cp \"$Datamining_dir/meta_tables/meta_data_table_for_${Project_code}.txt\" meta_data_table.txt"
+    cp "$Datamining_dir/meta_tables/meta_data_table_for_${Project_code}.txt" meta_data_table.txt
+    echo "alma_archive_make_data_dirs_with_meta_table.py meta_data_table.txt"
+    alma_archive_make_data_dirs_with_meta_table.py meta_data_table.txt
+else
+    echo "alma_archive_query_by_project_code.py ${Project_code}"
+    alma_archive_query_by_project_code.py ${Project_code}
+    echo "alma_archive_make_data_dirs_with_meta_table.py alma_archive_query_by_project_code_${Project_code}.txt -out meta_data_table.txt"
+    alma_archive_make_data_dirs_with_meta_table.py alma_archive_query_by_project_code_${Project_code}.txt -out meta_data_table.txt
+fi
 
 
 
