@@ -8,7 +8,7 @@ if [[ $# -lt 2 ]]; then
     echo "Usage: "
     echo "    alma_project_level_5_deploy_fits_images.bash Project_code Deploy_Directory"
     echo "Example: "
-    echo "    alma_project_level_5_deploy_fits_images.bash 2013.1.00034.S /nfs/irdata07/dzliu/datamining/images"
+    echo "    alma_project_level_5_deploy_fits_images.bash 2013.1.00034.S ../../images"
     echo "Notes: "
     echo "    This code will copy image files under Level_4_Data_Images to Deploy_Directory."
     echo "    A subfolder \"fits\" will be created under the Deploy_Directory."

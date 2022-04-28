@@ -76,6 +76,37 @@ with open(weblog_html, 'r') as weblog_index_html:
                 #print(soup_tr)
                 soup_tr_next = soup_tr.find_next_sibling('tr')
                 #print(type(soup_tr_next))
+                
+                if soup_tr_next is None:
+                    # 2022-04-11 fixing reading html if there is nested tables
+                    # tr does not have a sibling tr
+                    # we need to jump out a level
+                    #   table > tr > td > table > tr > td (nonsense stuff)
+                    #                           > tr > td (CASA version)
+                    #         > tr > td > table > tr > td (nonsense stuff)
+                    #                           > tr > td (actual number we want)
+                    soup_parent_table = soup_tr.find_parent('table')
+                    soup_parent_table_parent_td = soup_parent_table.find_parent('td')
+                    soup_parent_table_parent_td_parent_tr = soup_parent_table_parent_td.find_parent('tr')
+                    soup_this_tr = soup_parent_table_parent_td_parent_tr
+                    soup_next_tr = soup_parent_table_parent_td_parent_tr.find_next_sibling('tr')
+                    this_index = soup_this_tr.find_all('td').index(soup_parent_table_parent_td)
+                    #print('this_index', this_index)
+                    soup_this_tr_td = soup_this_tr.find_all('td')[this_index]
+                    soup_next_tr_td = soup_next_tr.find_all('td')[this_index]
+                    
+                    this_index = soup_this_tr_td.find_all('table').index(soup_parent_table)
+                    #print('this_index', this_index)
+                    soup_this_tr_td_table = soup_this_tr_td.find_all('table')[this_index]
+                    soup_next_tr_td_table = soup_next_tr_td.find_all('table')[this_index]
+                    
+                    this_index = soup_this_tr_td_table.find_all('tr').index(soup_tr)
+                    #print('this_index', this_index)
+                    soup_this_tr_td_table_tr = soup_this_tr_td_table.find_all('tr')[this_index]
+                    soup_next_tr_td_table_tr = soup_next_tr_td_table.find_all('tr')[this_index]
+                    
+                    soup_tr_next = soup_next_tr_td_table_tr
+                
                 soup_tr_next_td = soup_tr_next.find_all('td')
                 soup_tr_next_td_text = [t.text.strip() for t in soup_tr_next_td]
                 found_text = soup_tr_next_td_text[soup_tr_td_index]
@@ -84,6 +115,9 @@ with open(weblog_html, 'r') as weblog_index_html:
                     casa_version = found_text
                 if casa_version != '':
                     break
+                    
+                    
+                    
 
 if casa_version != '':
     print('CASA version %s'%(casa_version))
