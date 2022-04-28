@@ -163,25 +163,28 @@ for (( i = 0; i < ${#list_files[@]}; i++ )); do
     echo_output "Processing file_path \"${file_path}\""
     file_path_split=($(echo "$file_path" | sed -e 's%/% %g'))
     deploy_path=$(echo "$file_path" | sed -e "s%Level_1_Raw%${Deploy_dir}%g")
-    if [[ ! -d "$deploy_path" ]]; then
+    if [[ -d "$deploy_path" ]] && [[ $overwrite -gt 0 ]]; then
+        # backup the existing data to overwrite
+        if [[ -d "$deploy_path.backup" ]]; then
+            if [[ -d "$deploy_path.backup.backup" ]]; then
+                rm -rf "$deploy_path.backup.backup"
+            fi
+            mv "$deploy_path.backup" "$deploy_path.backup.backup"
+        fi
+        mv "$deploy_path" "$deploy_path.backup"
+    else
+        # create folder if needed
         deploy_subdir=$(dirname "$deploy_path")
         if [[ ! -d "$deploy_subdir" ]]; then
             echo_output "mkdir -p \"$deploy_subdir\""
             mkdir -p "$deploy_subdir"
         fi
-        if [[ ! -d "$deploy_path" ]] && [[ $overwrite -gt 0 ]]; then
-            if [[ -d "$deploy_path.backup" ]]; then
-                if [[ -d "$deploy_path.backup.backup" ]]; then
-                    rm -rf "$deploy_path.backup.backup"
-                fi
-                mv "$deploy_path.backup" "$deploy_path.backup.backup"
-            fi
-            mv "$deploy_path" "$deploy_path.backup"
-        fi
-        if [[ ! -d "$deploy_path" ]]; then
-            echo_output "cp -r \"$file_path\" \"$deploy_path\""
-            cp -r "$file_path" "$deploy_path"
-        fi
+    fi
+    if [[ -d "$deploy_path" ]]; then
+        echo "Warning! Found existing \"$deploy_path\" and overwrite is not set. Do nothing."
+    else
+        echo_output "cp -r \"$file_path\" \"$deploy_path\""
+        cp -r "$file_path" "$deploy_path"
     fi
 done
 
