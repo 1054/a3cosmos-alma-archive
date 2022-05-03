@@ -305,10 +305,10 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
         # run casa-ms-split
         if grep -q "CASA version 6" README_CASA_VERSION; then
             echo_output "casa-ms-split-for-casa6 -vis calibrated.ms -width ${width} -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} | tee casa-ms-split.log"
-            casa-ms-split-for-casa6 -vis calibrated.ms -width ${width} -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} 2>&1 | tee casa-ms-split.log
+            casa-ms-split-for-casa6 -vis calibrated.ms -width ${width} -do-not-restrict-width -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} 2>&1 | tee casa-ms-split.log
         else
             echo_output "casa-ms-split -vis calibrated.ms -width ${width} -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} | tee casa-ms-split.log"
-            casa-ms-split -vis calibrated.ms -width ${width} -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} 2>&1 | tee casa-ms-split.log
+            casa-ms-split -vis calibrated.ms -width ${width} -do-not-restrict-width -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} 2>&1 | tee casa-ms-split.log
         fi
     else
         echo_output "Warning! Found split_*_width${width_str}_SP.uvt files! Will not re-run casa-ms-split!"
