@@ -142,14 +142,14 @@ fi
 
 # search for files, they must comply certain naming rules
 echo_output "Searching for \"Level_1_Raw/${Project_code}/s*/g*/m*/calibrated/calibrated.ms\" ..."
-list_files=($(find "Level_1_Raw/${Project_code}" -mindepth 5 -maxdepth 5 -type d -name "calibrated.ms"))
+list_files=($(find "Level_1_Raw/${Project_code}" -mindepth 5 -maxdepth 5 -name "calibrated.ms"))
 if [[ ${#list_files[@]} -eq 0 ]]; then
     echo_output "Searching for \"Level_1_Raw/${Project_code}/s*/g*/m*/calibrated/uid__*.ms\" ..."
-    list_files=($(find "Level_1_Raw/${Project_code}" -mindepth 5 -maxdepth 5 -type d -name "uid__*.ms"))
+    list_files=($(find "Level_1_Raw/${Project_code}" -mindepth 5 -maxdepth 5 -name "uid__*.ms"))
 fi
 if [[ ${#list_files[@]} -eq 0 ]]; then
     echo_output "Searching for \"Level_1_Raw/${Project_code}/s*/g*/m*/calibrated/uid__*.ms.split.cal\" ..."
-    list_files=($(find "Level_1_Raw/${Project_code}" -mindepth 5 -maxdepth 5 -type d -name "uid__*.ms.split.cal"))
+    list_files=($(find "Level_1_Raw/${Project_code}" -mindepth 5 -maxdepth 5 -name "uid__*.ms.split.cal"))
 fi
 if [[ ${#list_files[@]} -eq 0 ]]; then
     echo_error "Error! Could not find any file! Please check the file names!"
