@@ -26,7 +26,7 @@ Project_code="$1"; shift
 
 # read user input
 iarg=1
-width="25km/s"
+width="*" # "25km/s"
 maximsize=2000
 overwrite=0
 keepfiles=0
