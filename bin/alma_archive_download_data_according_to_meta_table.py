@@ -154,6 +154,7 @@ for i in range(len(meta_table)):
     # 
     has_error_in_previous_run = False
     if os.path.isfile(Output_name+'.log'):
+        print('Checking previous log file "%s"...'%(Output_name+'.log'))
         with open(Output_name+'.log', 'r') as fp:
             for line in fp:
                 if re.match('.*error.*', line.strip(), re.IGNORECASE):
