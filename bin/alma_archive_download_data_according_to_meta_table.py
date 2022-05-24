@@ -355,7 +355,7 @@ for output_dir_path in output_dir_path_list:
         if os.path.isfile(output_dir_path+'.error'):
             os.remove(output_dir_path+'.error')
         if os.path.isfile(output_dir_path+'.touch'):
-        shutil.move(output_dir_path+'.touch', output_dir_path+'.done') # rename touch file as done file
+            shutil.move(output_dir_path+'.touch', output_dir_path+'.done') # rename touch file as done file
     else:
         has_error = True
 
