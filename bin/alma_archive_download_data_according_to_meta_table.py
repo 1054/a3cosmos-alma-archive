@@ -153,7 +153,7 @@ for i in range(len(meta_table)):
     # check exist log file and make sure it does not contain "ERROR" stuff
     # 
     has_error_in_previous_run = False
-    if os.path.isfile(Output_name+'.sh.done') and os.path.isfile(Output_name+'.log'):
+    if os.path.isfile(Output_name+'.log'):
         with open(Output_name+'.log', 'r') as fp:
             for line in fp:
                 if re.match('.*error.*', line.strip(), re.IGNORECASE):
