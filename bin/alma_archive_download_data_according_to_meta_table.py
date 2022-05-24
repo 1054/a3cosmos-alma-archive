@@ -288,7 +288,13 @@ for i in range(len(meta_table)):
     print('Running "%s >> %s" in terminal!'%(Output_name+'.sh', Output_name+'.log'))
     os.system('date +"%%Y-%%m-%%d %%H:%%M:%%S %%Z" > %s'%(Output_name+'.log'))
     os.system('echo "%s %s" >> %s'%(sys.argv[0], sys.argv[1], Output_name+'.log'))
-    os.system('chmod +x "%s"; ./%s 2>&1 >> %s'%(Output_name+'.sh', Output_name+'.sh', Output_name+'.log'))
+    ret = os.system('chmod +x "%s"; ./%s 2>&1 >> %s'%(Output_name+'.sh', Output_name+'.sh', Output_name+'.log'))
+    if ret != 0:
+        shutil.copy2(output_dir_path+'.touch', output_dir_path+'.error')
+        with open(output_dir_path+'.error', 'a') as fp:
+            fp.write('FINISH WITH ERROR:  ' + finish_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z') + '\n')
+            fp.write('ELAPSED: ' + str(finish_time-start_time) + '\n')
+            fp.write('\n')
     
     
     # 
@@ -314,7 +320,7 @@ for i in range(len(meta_table)):
 # finish all
 # 
 for output_dir_path in output_dir_path_list:
-    if os.path.isfile(output_dir_path+'.touch'):
+    if os.path.isfile(output_dir_path+'.touch') and (not os.path.isfile(output_dir_path+'.error')):
         shutil.move(output_dir_path+'.touch', output_dir_path+'.done') # rename touch file as done file
 #with open(output_dir_path+'.done', 'w') as fp:
 #    fp.write('STARTED: ' + start_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z') + '\n')

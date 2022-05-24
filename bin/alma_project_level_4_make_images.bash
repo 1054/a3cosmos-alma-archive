@@ -30,6 +30,7 @@ width="*" # "25km/s"
 maximsize=2000
 overwrite=0
 keepfiles=0
+skipcalibrators=1
 select_dataset=()
 while [[ $iarg -le $# ]]; do
     istr=$(echo ${!iarg} | tr '[:upper:]' '[:lower:]')
@@ -41,6 +42,11 @@ while [[ $iarg -le $# ]]; do
     fi
     if [[ "$istr" == "-dataset" ]] && [[ $((iarg+1)) -le $# ]]; then
         iarg=$((iarg+1)); select_dataset+=("${!iarg}"); echo "Selecting dataset \"${!iarg}\""
+    fi
+    if [[ "$istr" == "-skipcalibrators" ]] || [[ "$istr" == "-skip-calibrators" ]]; then
+        skipcalibrators=1
+    elif [[ "$istr" == "-noskipcalibrators" ]] || [[ "$istr" == "-do-not-skip-calibrators" ]]; then
+        skipcalibrators=0
     fi
     if [[ "$istr" == "-overwrite" ]]; then
         overwrite=$((overwrite+1))
@@ -140,6 +146,12 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
         continue
     fi
     
+    # check Level_3_Split listobs file
+    if [[ $skipcalibrators -gt 0 ]] && [[ ! -f ../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt ]]; then
+        echo_error "Error! \"../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt\" was not found! Please run Level_3_Split first! We will skip this dataset for now."
+        continue
+    fi
+    
     # read source names
     if [[ x"${width}" == x*"km/s" ]] || [[ x"${width}" == x*"KM/S" ]]; then
         width_val=$(echo "${width}" | sed -e 's%km/s%%g' | sed -e 's%KM/S%%g')
@@ -158,7 +170,7 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
         source_name=${list_of_unique_source_names[j]}
         
         # check observe_target and skip calibrators
-        if [[ -f ../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt ]]; then
+        if [[ $skipcalibrators -gt 0 ]] && [[ -f ../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt ]]; then
             if [[ $(cat ../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt | grep "OBSERVE_TARGET" | wc -l) -gt 0 ]]; then
                 cat ../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt | grep "OBSERVE_TARGET" > list_of_observe_target_in_$DataSet_dir.txt
                 if [[ $(grep " ${source_name} " list_of_observe_target_in_$DataSet_dir.txt | wc -l) -eq 0 ]]; then
