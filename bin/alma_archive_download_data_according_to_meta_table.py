@@ -159,7 +159,7 @@ for i in range(len(meta_table)):
                 if re.match('.*error.*', line.strip(), re.IGNORECASE):
                     has_error_in_previous_run = True
                     break
-                elif line.strip().lower()find('error') >= 0:
+                elif line.strip().lower().find('error') >= 0:
                     has_error_in_previous_run = True
                     break
     if has_error_in_previous_run:
