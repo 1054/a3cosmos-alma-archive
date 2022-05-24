@@ -319,16 +319,18 @@ for i in range(len(meta_table)):
 # 
 # finish all
 # 
+has_error = False
 for output_dir_path in output_dir_path_list:
-    if os.path.isfile(output_dir_path+'.touch') and (not os.path.isfile(output_dir_path+'.error')):
+    if os.path.isfile(output_dir_path+'.error'):
+        has_error = True
+    elif os.path.isfile(output_dir_path+'.touch'):
         shutil.move(output_dir_path+'.touch', output_dir_path+'.done') # rename touch file as done file
-#with open(output_dir_path+'.done', 'w') as fp:
-#    fp.write('STARTED: ' + start_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z') + '\n')
-#    fp.write('FINISHED: ' + finish_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z') + '\n')
-#    fp.write('ELAPSED: ' + str(finish_time-start_time) + '\n')
-#if os.path.isfile(output_dir_path+'.touch'):
-#    os.remove(output_dir_path+'.touch') # delete touch file
-        
+if has_error:
+    print('Done with error!')
+    sys.exit(1)
+else:
+    print('Done!')
+    sys.exit(0)
     
 
 
