@@ -126,6 +126,21 @@ for i in range(len(meta_table)):
     if output_dir_path not in output_dir_path_list:
         output_dir_path_list.append(output_dir_path)
     # 
+    # check exist log and make sure it does not contain "ERROR" stuff
+    # 
+    if os.path.isfile(output_dir_path+'.done') and os.path.isfile(output_dir_path+'.log'):
+        has_error = False
+        with open(output_dir_path+'.log', 'r') as fp:
+            for line in fp:
+                if re.match(r'.*\berror\b.*', line, re.IGNORECASE):
+                    has_error = True
+                    break
+        if has_error:
+            if os.path.isfile(output_dir_path+'.touch'):
+                os.remove(output_dir_path+'.touch')
+            os.remove(output_dir_path+'.done')
+            os.remove(output_dir_path+'.log')
+    # 
     # check exist output and do not overwrite
     # 
     if os.path.isdir(output_dir_path) and os.path.isfile(output_dir_path+'.done') and not os.path.isfile(output_dir_path+'.touch') and not overwrite:
