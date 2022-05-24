@@ -13,6 +13,7 @@ from astroquery.alma.core import Alma
 import astropy.io.ascii as asciitable
 from astropy.table import Table, Column
 from operator import itemgetter, attrgetter
+from collections import OrderedDict
 import glob
 import numpy as np
 
@@ -105,6 +106,7 @@ if not ('Project_code' in meta_table.colnames) or \
 # Loop each row
 # 
 output_dir_path_list = []
+failed_dict = OrderedDict()
 for i in range(len(meta_table)):
     # 
     # get mem_ous_id
@@ -128,16 +130,20 @@ for i in range(len(meta_table)):
     # 
     # check exist output and do not overwrite
     # 
-    if os.path.isdir(output_dir_path) and os.path.isfile(output_dir_path+'.done') and not os.path.isfile(output_dir_path+'.touch') and not overwrite:
+    if os.path.isdir(output_dir_path) and \
+       os.path.isfile(output_dir_path+'.done') and \
+       (not os.path.isfile(output_dir_path+'.touch')) and \
+       (not os.path.isfile(output_dir_path+'.error')) and \
+       (not overwrite):
         print('Found existing "%s" and "%s". Will not overwrite!'%(output_dir_path, output_dir_path+'.done'))
         continue
     # 
+    # make directory
+    # 
     if not os.path.isdir(output_dir_path):
         os.makedirs(output_dir_path)
-    if os.path.isfile(output_dir_path+'.done'):
-        os.remove(output_dir_path+'.done')
     # 
-    # change dir
+    # change directory
     # 
     current_dir_path = os.getcwd()
     print('os.chdir("%s")' % (output_dir_path) )
@@ -146,18 +152,23 @@ for i in range(len(meta_table)):
     # 
     # check exist log file and make sure it does not contain "ERROR" stuff
     # 
+    has_error_in_previous_run = False
     if os.path.isfile(Output_name+'.sh.done') and os.path.isfile(Output_name+'.log'):
-        has_error = False
         with open(Output_name+'.log', 'r') as fp:
             for line in fp:
-                if re.match(r'.*\berror\b.*', line, re.IGNORECASE):
-                    has_error = True
+                if re.match('.*error.*', line.strip(), re.IGNORECASE):
+                    has_error_in_previous_run = True
                     break
-        if has_error:
-            if os.path.isfile(Output_name+'.touch'):
-                os.remove(Output_name+'.touch')
+                elif line.strip().lower()find('error') >= 0:
+                    has_error_in_previous_run = True
+                    break
+    if has_error_in_previous_run:
+        if os.path.isfile(Output_name+'.touch'):
+            os.remove(Output_name+'.touch')
+        if os.path.isfile(Output_name+'.sh.done'):
             os.remove(Output_name+'.sh.done')
-            os.remove(Output_name+'.log')
+        #if os.path.isfile(Output_name+'.log'):
+        #    os.remove(Output_name+'.log')
     # 
     # check previous runs
     # 
@@ -292,8 +303,9 @@ for i in range(len(meta_table)):
     # touch 
     # 
     start_time = datetime.datetime.now()
+    start_time_stamp = start_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z')
     with open(output_dir_path+'.touch', 'w') as fp:
-        fp.write('START: ' + start_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z') + '\n')
+        fp.write('START: ' + start_time_stamp + '\n')
         fp.write('EXEC:  ' + Output_name+'.sh' + '\n')
     
     
@@ -305,11 +317,13 @@ for i in range(len(meta_table)):
     os.system('echo "%s %s" >> %s'%(sys.argv[0], sys.argv[1], Output_name+'.log'))
     ret = os.system('chmod +x "%s"; ./%s 2>&1 >> %s'%(Output_name+'.sh', Output_name+'.sh', Output_name+'.log'))
     if ret != 0:
-        shutil.copy2(output_dir_path+'.touch', output_dir_path+'.error')
+        with open(Output_name+'.log', 'a') as fp:
+            fp.write('\nFinished with error!\n')
         with open(output_dir_path+'.error', 'a') as fp:
-            fp.write('FINISH WITH ERROR:  ' + finish_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z') + '\n')
-            fp.write('ELAPSED: ' + str(finish_time-start_time) + '\n')
-            fp.write('\n')
+            fp.write('ERROR:  ' + Output_name+'.sh' + '\n')
+        if output_dir_path not in failed_dict:
+            failed_dict[output_dir_path] = []
+        failed_dict[output_dir_path].append(Output_name+'.sh')
     
     
     # 
@@ -324,8 +338,9 @@ for i in range(len(meta_table)):
     # finish
     # 
     finish_time = datetime.datetime.now()
+    finish_time_stamp = finish_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z')
     with open(output_dir_path+'.touch', 'a') as fp:
-        fp.write('FINISH:  ' + finish_time.strftime("%Y-%m-%d %H:%M:%S") + ' ' + time.strftime('%Z') + '\n')
+        fp.write('FINISH:  ' + finish_time_stamp + '\n')
         fp.write('ELAPSED: ' + str(finish_time-start_time) + '\n')
         fp.write('\n')
 
@@ -336,10 +351,14 @@ for i in range(len(meta_table)):
 # 
 has_error = False
 for output_dir_path in output_dir_path_list:
-    if os.path.isfile(output_dir_path+'.error'):
-        has_error = True
-    elif os.path.isfile(output_dir_path+'.touch'):
+    if output_dir_path not in failed_dict:
+        if os.path.isfile(output_dir_path+'.error'):
+            os.remove(output_dir_path+'.error')
+        if os.path.isfile(output_dir_path+'.touch'):
         shutil.move(output_dir_path+'.touch', output_dir_path+'.done') # rename touch file as done file
+    else:
+        has_error = True
+
 if has_error:
     print('Done with error!')
     sys.exit(1)
