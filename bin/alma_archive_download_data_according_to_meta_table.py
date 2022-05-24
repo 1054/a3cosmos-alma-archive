@@ -126,21 +126,6 @@ for i in range(len(meta_table)):
     if output_dir_path not in output_dir_path_list:
         output_dir_path_list.append(output_dir_path)
     # 
-    # check exist log and make sure it does not contain "ERROR" stuff
-    # 
-    if os.path.isfile(output_dir_path+'.done') and os.path.isfile(output_dir_path+'.log'):
-        has_error = False
-        with open(output_dir_path+'.log', 'r') as fp:
-            for line in fp:
-                if re.match(r'.*\berror\b.*', line, re.IGNORECASE):
-                    has_error = True
-                    break
-        if has_error:
-            if os.path.isfile(output_dir_path+'.touch'):
-                os.remove(output_dir_path+'.touch')
-            os.remove(output_dir_path+'.done')
-            os.remove(output_dir_path+'.log')
-    # 
     # check exist output and do not overwrite
     # 
     if os.path.isdir(output_dir_path) and os.path.isfile(output_dir_path+'.done') and not os.path.isfile(output_dir_path+'.touch') and not overwrite:
@@ -159,13 +144,28 @@ for i in range(len(meta_table)):
     os.chdir(output_dir_path)
     print('os.getcwd()', os.getcwd())
     # 
+    # check exist log file and make sure it does not contain "ERROR" stuff
+    # 
+    if os.path.isfile(Output_name+'.sh.done') and os.path.isfile(Output_name+'.log'):
+        has_error = False
+        with open(Output_name+'.log', 'r') as fp:
+            for line in fp:
+                if re.match(r'.*\berror\b.*', line, re.IGNORECASE):
+                    has_error = True
+                    break
+        if has_error:
+            if os.path.isfile(Output_name+'.touch'):
+                os.remove(Output_name+'.touch')
+            os.remove(Output_name+'.sh.done')
+            os.remove(Output_name+'.log')
+    # 
     # check previous runs
     # 
-    if os.path.isfile('%s.sh'%(Output_name)): 
+    if os.path.isfile(Output_name+'.sh'): 
         if os.path.isfile('%s.sh.done'%(Output_name)): 
-            print('Found exisiting "%s.sh" and "%s.sh.done"! Will not re-run it!'%(Output_name,Output_name))
+            print('Found exisiting "%s" and "%s"! Will not re-run it!'%(Output_name+'.sh', Output_name+'.sh.done'))
         else:
-            print('Found exisiting "%s.sh"! But it seems not finished yet! Will launch it now!'%(Output_name))
+            print('Found exisiting "%s"! But it seems not finished yet! Will launch it now!'%(Output_name+'.sh'))
             #os.system('echo "" >> %s.log'%(Output_name))
             #os.system('date +\"%%Y-%%m-%%d %%H:%%M:%%S %%Z\" >> %s.log'%(Output_name))
             #os.system('echo "" >> %s.log'%(Output_name))
