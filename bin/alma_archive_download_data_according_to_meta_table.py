@@ -163,6 +163,7 @@ for i in range(len(meta_table)):
                     has_error_in_previous_run = True
                     break
     if has_error_in_previous_run:
+        print('Found error in "%s"! Will re-run the script!'%(Output_name+'.log'))
         if os.path.isfile(Output_name+'.touch'):
             os.remove(Output_name+'.touch')
         if os.path.isfile(Output_name+'.sh.done'):
