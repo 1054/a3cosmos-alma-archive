@@ -261,7 +261,7 @@ for i in range(len(meta_table)):
             fp.write("\n")
             fp.write("set -e\n")
             fp.write("\n")
-            fp.write('date +"%%Y-%%m-%%d %%H:%%M:%%S %%Z"')
+            fp.write('date +"%Y-%m-%d %H:%M:%S %Z"')
             fp.write("\n")
             fp.write('echo "${BASH_SOURCE[0]}"')
             fp.write("\n")
