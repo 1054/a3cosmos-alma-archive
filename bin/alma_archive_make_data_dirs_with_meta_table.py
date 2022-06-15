@@ -391,8 +391,8 @@ for t_Member_ous_id in t_Dataset_dict:
             t_Dataset_link = 'Level_2_Calib/'+t_Dataset_dirname+'/raw'
             t_Dataset_link2 = 'Level_2_Calib/'+t_Dataset_dirname+'/calibrated/'+os.path.basename(t_found_dir)
             # make link (including parenet dirs)
-            my_function_to_make_symbolic_link('../../'+t_found_dir, t_Dataset_link, verbose=verbose)
-            my_function_to_make_symbolic_link('../../../'+t_found_dir, t_Dataset_link2, verbose=verbose)
+            my_function_to_make_symbolic_link(t_found_dir, t_Dataset_link, verbose=verbose)
+            my_function_to_make_symbolic_link(t_found_dir, t_Dataset_link2, verbose=verbose)
             # 
             # make calibration script
             # <TODO> EVLA pipeline CASA version ??
@@ -431,7 +431,7 @@ for t_Member_ous_id in t_Dataset_dict:
         else:
             t_Dataset_link = 'Level_2_Calib/'+t_Dataset_dirname
             # make link (including parenet dirs)
-            my_function_to_make_symbolic_link('../'+t_found_dir, t_Dataset_link, verbose=verbose)
+            my_function_to_make_symbolic_link(t_found_dir, t_Dataset_link, verbose=verbose)
             # 
             # make calibration script
             # <TODO> ALMA pipeline mode or ??
