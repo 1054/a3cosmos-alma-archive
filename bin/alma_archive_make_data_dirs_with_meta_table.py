@@ -218,24 +218,25 @@ if Project_code is None or \
 
 def my_function_to_make_symbolic_link(src, dst, verbose = 0):
     if os.path.exists(src):
+        relpath = os.path.relpath(src, os.path.dirname(dst))
         if os.path.islink(dst):
             #print(os.readlink(dst))
             #print(os.path.exists(dst))
             if not os.path.exists(dst):
                 os.remove(dst)
-            elif os.readlink(dst) != src:
+            elif os.readlink(dst) != relpath:
                 print('Rewriting the link "%s" which was linked to "%s".'%(dst, os.readlink(dst)))
                 os.remove(dst)
         if not os.path.islink(dst):
             if not os.path.isdir(os.path.dirname(dst)):
                 os.makedirs(os.path.dirname(dst))
             if verbose >= 1 :
-                print('Linking "%s" to "%s".'%(dst, src))
-            os.symlink(src, dst)
-            #print('ln -fsT "%s" "%s"'%(src, dst))
-            #os.system('ln -fsT "%s" "%s"'%(src, dst))
+                print('Linking "%s" to "%s".'%(dst, relpath))
+            os.symlink(relpath, dst)
+            #print('ln -fsT "%s" "%s"'%(relpath, dst))
+            #os.system('ln -fsT "%s" "%s"'%(relpath, dst))
         else:
-            print('Found existing link "%s" to "%s".'%(dst, src))
+            print('Found existing link "%s" to "%s".'%(dst, relpath))
     else:
         print('Cannot make a link to the non-existing src "%s".'%(src))
 
