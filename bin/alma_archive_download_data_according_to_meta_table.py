@@ -157,9 +157,9 @@ for i in range(len(meta_table)):
     # check exist log file and make sure it does not contain "ERROR" stuff
     # 
     has_error_in_previous_run = False
+    has_successfully_downloaded = False
     if os.path.isfile(Output_name+'.log'):
         print('Checking previous log file "%s"...'%(Output_name+'.log'))
-        has_successfully_downloaded = False
         with open(Output_name+'.log', 'r') as fp:
             for line in fp:
                 #print('line', line) # debug 20220524
