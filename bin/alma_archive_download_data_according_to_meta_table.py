@@ -32,7 +32,7 @@ if len(sys.argv) <= 1:
 meta_table_file = ''
 some_option = ''
 Login_user_name = ''
-Use_alma_site = 'nrao'
+Use_alma_site = 'eso' # 'nrao'
 Use_astroquery_download = False
 output_dir = ''
 overwrite = False
@@ -54,6 +54,8 @@ while i < len(sys.argv):
             output_dir = sys.argv[i]
     elif tmp_arg == '-eso': 
         Use_alma_site = 'eso'
+    elif tmp_arg == '-nrao': 
+        Use_alma_site = 'nrao'
     elif tmp_arg == '-use-astroquery-download': 
         Use_astroquery_download = True
     elif tmp_arg == '-overwrite': 
@@ -214,8 +216,11 @@ for i in range(len(meta_table)):
         # 'https://beta.cadc-ccda.hia-iha.nrc-cnrc.gc.ca'
         if Use_alma_site == 'eso':
             Alma.archive_url = u'https://almascience.eso.org'
-        else:
+        elif Use_alma_site == 'nrao':
             Alma.archive_url = u'https://almascience.nrao.edu'
+        else:
+            raise Exception('Use_alma_site {} is not recognized!'.format(Use_alma_site))
+            #Alma.archive_url = u'https://almascience.nrao.edu'
         
         # login
         if Login_user_name != '':
