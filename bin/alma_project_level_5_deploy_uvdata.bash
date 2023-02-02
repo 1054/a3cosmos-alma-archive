@@ -6,18 +6,20 @@
 
 if [[ $# -lt 2 ]]; then
     echo "Usage: "
-    echo "    alma_project_level_5_deploy_calibrated_ms.bash Project_code Deploy_Directory"
+    echo "    alma_project_level_5_deploy_uvdata.bash Project_code Deploy_Directory"
     echo "Example: "
-    echo "    alma_project_level_5_deploy_calibrated_ms.bash 2013.1.00034.S ../../uvdata"
+    echo "    alma_project_level_5_deploy_uvdata.bash 2013.1.00034.S ../../alma_archive"
     echo "Notes: "
-    echo "    This code will copy calibrated.ms under Level_1_Raw/<project_code>/s*/g*/m*/calibrated/ to Deploy_Directory."
-    echo "    A subfolder \"<project_codde>\" will be created under the Deploy_Directory."
+    echo "    This code will copy \"calibrated.ms\" under \"Level_1_Raw/<project_code>/s*/g*/m*/calibrated/\""
+    echo "    to the path \"<Deploy_Directory>/uvdata/<project_code>/\"."
+    echo "    A subfolder \"uvdata/<project_code>\" will be created under the <Deploy_Directory>."
     exit
 fi
 
 Project_code="$1"
 Deploy_dir=$(perl -MCwd -e 'print Cwd::abs_path shift' $(echo "$2" | sed -e 's%/$%%g')) # get absolute path, but remove trailing '/' first.
 Script_dir=$(dirname $(perl -MCwd -e 'print Cwd::abs_path shift' "${BASH_SOURCE[0]}"))
+Subset_dir="uvdata"
 overwrite=0
 if [[ " $@ "x == *" -overwrite "*x ]] || [[ " $@ "x == *" --overwrite "*x ]] || [[ " $@ "x == *" overwrite "*x ]]; then
     overwrite=1
@@ -94,9 +96,17 @@ if [[ ! -d Level_1_Raw/${Project_code} ]]; then
 fi
 
 
-# remove Deploy_dir directory suffix
+# make Deploy_dir and the "$Subset_dir" subdirectory
 if [[ "$Deploy_dir" == *"/" ]]; then
     Deploy_dir=$(echo "$Deploy_dir" | sed -e 's%/$%%g')
+fi
+if [[ ! -d "$Deploy_dir/$Subset_dir" ]]; then
+    echo_output "mkdir -p \"$Deploy_dir/$Subset_dir\""
+    mkdir -p "$Deploy_dir/$Subset_dir"
+fi
+if [[ ! -d "$Deploy_dir/$Subset_dir" ]]; then
+    echo_error "Error! Could not create output directory \"$Deploy_dir/$Subset_dir\"! Please check your permission!"
+    exit 255
 fi
 
 
@@ -162,7 +172,7 @@ for (( i = 0; i < ${#list_files[@]}; i++ )); do
     file_path="${list_files[i]}"
     echo_output "Processing file_path \"${file_path}\""
     file_path_split=($(echo "$file_path" | sed -e 's%/% %g'))
-    deploy_path=$(echo "$file_path" | sed -e "s%Level_1_Raw%${Deploy_dir}%g")
+    deploy_path=$(echo "$file_path" | sed -e "s%Level_1_Raw%${Deploy_dir}/${Subset_dir}%g")
     if [[ -d "$deploy_path" ]] && [[ $overwrite -gt 0 ]]; then
         # backup the existing data to overwrite
         if [[ -d "$deploy_path.backup" ]]; then

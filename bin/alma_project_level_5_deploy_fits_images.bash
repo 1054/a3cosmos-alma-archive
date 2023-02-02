@@ -8,16 +8,18 @@ if [[ $# -lt 2 ]]; then
     echo "Usage: "
     echo "    alma_project_level_5_deploy_fits_images.bash Project_code Deploy_Directory"
     echo "Example: "
-    echo "    alma_project_level_5_deploy_fits_images.bash 2013.1.00034.S ../../images"
+    echo "    alma_project_level_5_deploy_fits_images.bash 2013.1.00034.S ../../alma_archive"
     echo "Notes: "
-    echo "    This code will copy image files under Level_4_Data_Images to Deploy_Directory."
-    echo "    A subfolder \"fits\" will be created under the Deploy_Directory."
+    echo "    This code will copy \"cont.I.image.fits\" files under Level_4_Data_Images "
+    echo "    to the path \"<Deploy_Directory>/images/\"."
+    echo "    A subfolder \"images\" will be created under the Deploy_Directory."
     exit
 fi
 
 Project_code="$1"
 Deploy_dir=$(perl -MCwd -e 'print Cwd::abs_path shift' $(echo "$2" | sed -e 's%/$%%g')) # get absolute path, but remove trailing '/' first.
 Script_dir=$(dirname $(perl -MCwd -e 'print Cwd::abs_path shift' "${BASH_SOURCE[0]}"))
+Subset_dir="images" # "fits"
 overwrite=0
 if [[ " $@ "x == *" -overwrite "*x ]] || [[ " $@ "x == *" --overwrite "*x ]] || [[ " $@ "x == *" overwrite "*x ]]; then
     overwrite=1
@@ -90,16 +92,16 @@ if [[ ! -d Level_4_Data_Images ]]; then
 fi
 
 
-# make Deploy_dir and the "fits" subdirectory
+# make Deploy_dir and the "$Subset_dir" subdirectory
 if [[ "$Deploy_dir" == *"/" ]]; then
     Deploy_dir=$(echo "$Deploy_dir" | sed -e 's%/$%%g')
 fi
-if [[ ! -d "$Deploy_dir/fits" ]]; then
-    echo_output "mkdir -p \"$Deploy_dir/fits\""
-    mkdir -p "$Deploy_dir/fits"
+if [[ ! -d "$Deploy_dir/$Subset_dir" ]]; then
+    echo_output "mkdir -p \"$Deploy_dir/$Subset_dir\""
+    mkdir -p "$Deploy_dir/$Subset_dir"
 fi
-if [[ ! -d "$Deploy_dir/fits" ]]; then
-    echo_error "Error! Could not create output directory \"$Deploy_dir/fits\"! Please check your permission!"
+if [[ ! -d "$Deploy_dir/$Subset_dir" ]]; then
+    echo_error "Error! Could not create output directory \"$Deploy_dir/$Subset_dir\"! Please check your permission!"
     exit 255
 fi
 
@@ -235,28 +237,28 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     image_file="${project_code}.member.${mem_ous_id_str}.${image_name}"
     
     # copy fits file
-    if [[ ! -f "${Deploy_dir}/fits/${image_file}" ]] || [[ $overwrite -gt 0 ]]; then
-        echo_output "cp \"${image_path}\" \"${Deploy_dir}/fits/${image_file}\""
-        cp "${image_path}" "${Deploy_dir}/fits/${image_file}"
+    if [[ ! -f "${Deploy_dir}/$Subset_dir/${image_file}" ]] || [[ $overwrite -gt 0 ]]; then
+        echo_output "cp \"${image_path}\" \"${Deploy_dir}/$Subset_dir/${image_file}\""
+        cp "${image_path}" "${Deploy_dir}/$Subset_dir/${image_file}"
         # also copy pb and pbcor files
         pb_image_path=$(echo "${image_path}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.pb.fits/g')
         pb_image_file=$(echo "${image_file}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.pb.fits/g')
         if [[ -f "${pb_image_path}" ]]; then
-            echo_output "cp \"${pb_image_path}\" \"${Deploy_dir}/fits/${pb_image_file}\""
-            cp "${pb_image_path}" "${Deploy_dir}/fits/${pb_image_file}"
+            echo_output "cp \"${pb_image_path}\" \"${Deploy_dir}/$Subset_dir/${pb_image_file}\""
+            cp "${pb_image_path}" "${Deploy_dir}/$Subset_dir/${pb_image_file}"
         fi
         pbcor_image_path=$(echo "${image_path}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.image.pbcor.fits/g')
         pbcor_image_file=$(echo "${image_file}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.image.pbcor.fits/g')
         if [[ -f "${pbcor_image_path}" ]]; then
-            echo_output "cp \"${pbcor_image_path}\" \"${Deploy_dir}/fits/${pbcor_image_file}\""
-            cp "${pbcor_image_path}" "${Deploy_dir}/fits/${pbcor_image_file}"
+            echo_output "cp \"${pbcor_image_path}\" \"${Deploy_dir}/$Subset_dir/${pbcor_image_file}\""
+            cp "${pbcor_image_path}" "${Deploy_dir}/$Subset_dir/${pbcor_image_file}"
         fi
     fi
     
     # cd into the directory
     Current_dir=$(pwd -P)
-    echo_output "cd \"${Deploy_dir}/fits\""
-    cd "${Deploy_dir}/fits"
+    echo_output "cd \"${Deploy_dir}/$Subset_dir\""
+    cd "${Deploy_dir}/$Subset_dir"
     # write mem_ous_id into the fits header
     if [[ $(gethead "${image_file}" MEMBER 2>/dev/null | wc -l) -eq 0 ]]; then
         echo_output "sethead \"${image_file}\" MEMBER=\"${mem_ous_id}\""

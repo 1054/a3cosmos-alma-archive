@@ -8,16 +8,18 @@ if [[ $# -lt 2 ]]; then
     echo "Usage: "
     echo "    alma_project_level_5_deploy_meta_table.bash Project_code Deploy_Directory"
     echo "Example: "
-    echo "    alma_project_level_5_deploy_meta_table.bash 2013.1.00034.S ../../meta_tables"
+    echo "    alma_project_level_5_deploy_meta_table.bash 2013.1.00034.S ../../alma_archive"
     echo "Notes: "
-    echo "    This code will copy image cube files under Level_4_Data_Images to Deploy_Directory."
-    echo "    A subfolder \"<project_codde>\" will be created under the Deploy_Directory."
+    echo "    This code will copy \"meta_data_table_for_<Project_code>.txt\" "
+    echo "    to the path \"<Deploy_Directory>/meta_tables/\"."
+    echo "    A subfolder \"meta_tables\" will be created under the Deploy_Directory."
     exit
 fi
 
 Project_code="$1"
 Deploy_dir=$(perl -MCwd -e 'print Cwd::abs_path shift' $(echo "$2" | sed -e 's%/$%%g')) # get absolute path, but remove trailing '/' first.
 Script_dir=$(dirname $(perl -MCwd -e 'print Cwd::abs_path shift' "${BASH_SOURCE[0]}"))
+Subset_dir="meta_tables"
 overwrite=0
 if [[ " $@ "x == *" -overwrite "*x ]] || [[ " $@ "x == *" --overwrite "*x ]] || [[ " $@ "x == *" overwrite "*x ]]; then
     overwrite=1
@@ -87,13 +89,17 @@ if [[ ! -f "${meta_data_table_file}" ]]; then
 fi
 
 
-# make Deploy_dir directory
+# make Deploy_dir and the "$Subset_dir" subdirectory
 if [[ "$Deploy_dir" == *"/" ]]; then
     Deploy_dir=$(echo "$Deploy_dir" | sed -e 's%/$%%g')
 fi
-if [[ ! -d "$Deploy_dir" ]]; then
-    echo_output "mkdir -p \"$Deploy_dir\""
-    mkdir -p "$Deploy_dir"
+if [[ ! -d "$Deploy_dir/$Subset_dir" ]]; then
+    echo_output "mkdir -p \"$Deploy_dir/$Subset_dir\""
+    mkdir -p "$Deploy_dir/$Subset_dir"
+fi
+if [[ ! -d "$Deploy_dir/$Subset_dir" ]]; then
+    echo_error "Error! Could not create output directory \"$Deploy_dir/$Subset_dir\"! Please check your permission!"
+    exit 255
 fi
 
 
@@ -139,11 +145,11 @@ fi
 
 
 # copy meta_data_table_file to Deploy_dir
-if [[ -f "$Deploy_dir/meta_data_table_for_${Project_code}.txt" ]]; then
-    mv "$Deploy_dir/meta_data_table_for_${Project_code}.txt" "$Deploy_dir/meta_data_table_for_${Project_code}.txt.backup"
+if [[ -f "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt" ]]; then
+    mv "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt" "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt.backup"
 fi
-echo "cp \"$meta_data_table_file\" \"$Deploy_dir/meta_data_table_for_${Project_code}.txt\""
-cp "$meta_data_table_file" "$Deploy_dir/meta_data_table_for_${Project_code}.txt"
+echo "cp \"$meta_data_table_file\" \"$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt\""
+cp "$meta_data_table_file" "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt"
 
 
 

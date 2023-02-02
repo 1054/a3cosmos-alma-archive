@@ -9,8 +9,7 @@ if [[ $# -eq 0 ]]; then
     echo "    alma_project_level_5_deploy_all.bash \"Deploy_dir\""
     echo "Notes: "
     echo "    We will copy files into following subdirectories under the Deploy_dir: "
-    echo "    \"meta_tables\", \"uvdata\", \"uvfits\", \"images/fits\", "
-    echo "    and \"images/fits_cubes\"."
+    echo "    \"meta_tables\", \"uvdata\", \"uvfits\", \"images\", and \"cubes\"."
     echo "    We require the current directory name to have a start with the ALMA project code."
     exit
 fi
@@ -35,34 +34,34 @@ if [[ $(echo $Project_code | perl -p -e 's/[0-9]{4}\.[0-9]\.[0-9]{5}\.[A-Z]/OK/g
         exit 255
     fi
     
-    if [[ ! -d "$Deploy_dir/uvfits" ]]; then
-        echo "Error! Directory is not found: \"$Deploy_dir/uvfits\""
-        exit 255
-    fi
+    #if [[ ! -d "$Deploy_dir/uvfits" ]]; then
+    #    echo "Error! Directory is not found: \"$Deploy_dir/uvfits\""
+    #    exit 255
+    #fi
     
-    if [[ ! -d "$Deploy_dir/images" ]]; then
-        echo "Error! Directory is not found: \"$Deploy_dir/images\""
-        exit 255
-    fi
+    #if [[ ! -d "$Deploy_dir/images" ]]; then
+    #    echo "Error! Directory is not found: \"$Deploy_dir/images\""
+    #    exit 255
+    #fi
 
     if [[ ! -f done_deploying_meta_table ]]; then
-        alma_project_level_5_deploy_meta_table.bash $Project_code "$Deploy_dir/meta_tables"
+        alma_project_level_5_deploy_meta_table.bash $Project_code "$Deploy_dir"
     fi
     
     if [[ ! -f done_deploying_calibrated_ms ]]; then
-        alma_project_level_5_deploy_calibrated_ms.bash $Project_code "$Deploy_dir/uvdata"
+        alma_project_level_5_deploy_uvdata.bash $Project_code "$Deploy_dir"
     fi
     
     if [[ ! -f done_deploying_uvfits ]]; then
-        alma_project_level_5_deploy_uvfits.bash $Project_code "$Deploy_dir/uvfits"
+        alma_project_level_5_deploy_uvfits.bash $Project_code "$Deploy_dir"
     fi
 
     if [[ ! -f done_deploying_fits_images ]]; then
-        alma_project_level_5_deploy_fits_images.bash $Project_code "$Deploy_dir/images"
+        alma_project_level_5_deploy_fits_images.bash $Project_code "$Deploy_dir"
     fi
 
     if [[ ! -f done_deploying_fits_image_cubes ]]; then
-        alma_project_level_5_deploy_fits_image_cubes.bash $Project_code "$Deploy_dir/images"
+        alma_project_level_5_deploy_fits_image_cubes.bash $Project_code "$Deploy_dir"
     fi
 
 else

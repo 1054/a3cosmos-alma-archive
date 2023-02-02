@@ -8,16 +8,18 @@ if [[ $# -lt 2 ]]; then
     echo "Usage: "
     echo "    alma_project_level_5_deploy_uvfits.bash Project_code Deploy_Directory"
     echo "Example: "
-    echo "    alma_project_level_5_deploy_uvfits.bash 2013.1.00034.S ../../uvfits"
+    echo "    alma_project_level_5_deploy_uvfits.bash 2013.1.00034.S ../../alma_archive"
     echo "Notes: "
-    echo "    This code will copy image cube files under Level_4_Data_Images to Deploy_Directory."
-    echo "    A subfolder \"<project_codde>\" will be created under the Deploy_Directory."
+    echo "    This code will copy \"*.uvfits\" files under Level_4_Data_uvfits"
+    echo "    to the path \"<Deploy_Directory>/uvfits/<project_codde>\"."
+    echo "    A subfolder \"uvfits/<project_code>\" will be created under the <Deploy_Directory>."
     exit
 fi
 
 Project_code="$1"
 Deploy_dir=$(perl -MCwd -e 'print Cwd::abs_path shift' $(echo "$2" | sed -e 's%/$%%g')) # get absolute path, but remove trailing '/' first.
 Script_dir=$(dirname $(perl -MCwd -e 'print Cwd::abs_path shift' "${BASH_SOURCE[0]}"))
+Subset_dir="uvfits"
 overwrite=0
 if [[ " $@ "x == *" -overwrite "*x ]] || [[ " $@ "x == *" --overwrite "*x ]] || [[ " $@ "x == *" overwrite "*x ]]; then
     overwrite=1
@@ -94,9 +96,17 @@ if [[ ! -d Level_4_Data_uvfits ]]; then
 fi
 
 
-# make Deploy_dir directory
+# make Deploy_dir and the "$Subset_dir" subdirectory
 if [[ "$Deploy_dir" == *"/" ]]; then
     Deploy_dir=$(echo "$Deploy_dir" | sed -e 's%/$%%g')
+fi
+if [[ ! -d "$Deploy_dir/$Subset_dir" ]]; then
+    echo_output "mkdir -p \"$Deploy_dir/$Subset_dir\""
+    mkdir -p "$Deploy_dir/$Subset_dir"
+fi
+if [[ ! -d "$Deploy_dir/$Subset_dir" ]]; then
+    echo_error "Error! Could not create output directory \"$Deploy_dir/$Subset_dir\"! Please check your permission!"
+    exit 255
 fi
 
 
@@ -227,12 +237,12 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     fi
     
     # set output subdir
-    if [[ ! -d "$Deploy_dir/$project_code" ]]; then
-        echo_output "mkdir -p \"$Deploy_dir/$project_code\""
-        mkdir -p "$Deploy_dir/$project_code"
+    if [[ ! -d "$Deploy_dir/$Subset_dir/$project_code" ]]; then
+        echo_output "mkdir -p \"$Deploy_dir/$Subset_dir/$project_code\""
+        mkdir -p "$Deploy_dir/$Subset_dir/$project_code"
     fi
-    if [[ ! -d "$Deploy_dir/$project_code" ]]; then
-        echo_error "Error! Could not create output directory \"$Deploy_dir/$project_code\"! Please check your permission!"
+    if [[ ! -d "$Deploy_dir/$Subset_dir/$project_code" ]]; then
+        echo_error "Error! Could not create output directory \"$Deploy_dir/$Subset_dir/$project_code\"! Please check your permission!"
         exit 255
     fi
     
@@ -263,15 +273,15 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     image_file="${project_code}.member.${mem_ous_id_str}.field.${image_name}.width.${chan_velwidth}kms.uvfits"
     
     # copy fits file
-    if [[ ! -f "${Deploy_dir}/${project_code}/${image_file}" ]] || [[ $overwrite -gt 0 ]]; then
-        echo_output "cp \"${image_path}\" \"${Deploy_dir}/${project_code}/${image_file}\""
-        cp "${image_path}" "${Deploy_dir}/${project_code}/${image_file}"
+    if [[ ! -f "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}" ]] || [[ $overwrite -gt 0 ]]; then
+        echo_output "cp \"${image_path}\" \"${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}\""
+        cp "${image_path}" "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}"
     fi
     
     # cd into the directory
     Current_dir=$(pwd -P)
-    echo_output "cd \"${Deploy_dir}/${project_code}\""
-    cd "${Deploy_dir}/${project_code}"
+    echo_output "cd \"${Deploy_dir}/${Subset_dir}/${project_code}\""
+    cd "${Deploy_dir}/${Subset_dir}/${project_code}"
     # write mem_ous_id into the fits header
     if [[ $(gethead "${image_file}" MEMBER 2>/dev/null | wc -l) -eq 0 ]]; then
         echo_output "sethead \"${image_file}\" MEMBER=\"${mem_ous_id}\""
