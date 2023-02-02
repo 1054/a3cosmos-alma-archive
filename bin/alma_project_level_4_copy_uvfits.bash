@@ -22,7 +22,8 @@ Project_code="$1"; shift
 
 # read user input
 iarg=1
-width="25km/s"
+#width="25km/s"
+width="*km/s"
 select_dataset=()
 output_folder="Level_4_Data_uvfits"
 while [[ $iarg -le $# ]]; do

@@ -4,6 +4,24 @@ set -e
 
 Script_dir=$(dirname $(perl -MCwd -e 'print Cwd::abs_path shift' "${BASH_SOURCE[0]}"))
 
+if [[ $# -eq 0 ]]; then
+    echo "Usage: "
+    echo "    alma_project_level_5_deploy_all.bash \"Deploy_dir\""
+    echo "Notes: "
+    echo "    We will copy files into following subdirectories under the Deploy_dir: "
+    echo "    \"meta_tables\", \"uvdata\", \"uvfits\", \"images/fits\", "
+    echo "    and \"images/fits_cubes\"."
+    echo "    We require the current directory name to have a start with the ALMA project code."
+    exit
+fi
+
+Deploy_dir="$1"
+echo "Deploy_dir: \"$Deploy_dir\""
+if [[ ! -d "$Deploy_dir" ]]; then
+    echo "Error! The deploy directory is not found: \"$Deploy_dir\""
+    exit 255
+fi
+
 Project_code=$(basename $(pwd) | cut -b 1-14)
 
 if [[ $(echo $Project_code | perl -p -e 's/[0-9]{4}\.[0-9]\.[0-9]{5}\.[A-Z]/OK/g') == OK ]]; then
@@ -17,36 +35,41 @@ if [[ $(echo $Project_code | perl -p -e 's/[0-9]{4}\.[0-9]\.[0-9]{5}\.[A-Z]/OK/g
         exit 255
     fi
     
-    if [[ ! -d ../../uvfits ]]; then
-        echo "Error! Directory is not found: \"../../uvfits\""
+    if [[ ! -d "$Deploy_dir/uvfits" ]]; then
+        echo "Error! Directory is not found: \"$Deploy_dir/uvfits\""
         exit 255
     fi
     
-    if [[ ! -d ../../images ]]; then
-        echo "Error! Directory is not found: \"../../images\""
+    if [[ ! -d "$Deploy_dir/images" ]]; then
+        echo "Error! Directory is not found: \"$Deploy_dir/images\""
         exit 255
     fi
 
     if [[ ! -f done_deploying_meta_table ]]; then
-        alma_project_level_5_deploy_meta_table.bash $Project_code ../../meta_tables
+        alma_project_level_5_deploy_meta_table.bash $Project_code "$Deploy_dir/meta_tables"
     fi
     
     if [[ ! -f done_deploying_calibrated_ms ]]; then
-        alma_project_level_5_deploy_calibrated_ms.bash $Project_code ../../uvdata
+        alma_project_level_5_deploy_calibrated_ms.bash $Project_code "$Deploy_dir/uvdata"
     fi
     
     if [[ ! -f done_deploying_uvfits ]]; then
-        alma_project_level_5_deploy_uvfits.bash $Project_code ../../uvfits
+        alma_project_level_5_deploy_uvfits.bash $Project_code "$Deploy_dir/uvfits"
     fi
 
     if [[ ! -f done_deploying_fits_images ]]; then
-        alma_project_level_5_deploy_fits_images.bash $Project_code ../../images
+        alma_project_level_5_deploy_fits_images.bash $Project_code "$Deploy_dir/images"
     fi
 
     if [[ ! -f done_deploying_fits_image_cubes ]]; then
-        alma_project_level_5_deploy_fits_image_cubes.bash $Project_code ../../images
+        alma_project_level_5_deploy_fits_image_cubes.bash $Project_code "$Deploy_dir/images"
     fi
 
+else
+    
+    echo "Error! The current directory name seems to be not starting with an ALMA project code in the format of \"[0-9]{4}\.[0-9]\.[0-9]{5}\.[A-Z]\"?"
+    exit 255
+    
 fi
 
 
