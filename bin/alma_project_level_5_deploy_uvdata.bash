@@ -193,8 +193,8 @@ for (( i = 0; i < ${#list_files[@]}; i++ )); do
     if [[ -d "$deploy_path" ]]; then
         echo "Warning! Found existing \"$deploy_path\" and overwrite is not set. Do nothing."
     else
-        echo_output "cp -r \"$file_path\" \"$deploy_path\""
-        cp -r "$file_path" "$deploy_path"
+        echo_output "cp -rL \"$file_path\" \"$deploy_path\""
+        cp -rL "$file_path" "$deploy_path"
     fi
 done
 

@@ -148,8 +148,8 @@ fi
 if [[ -f "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt" ]]; then
     mv "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt" "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt.backup"
 fi
-echo "cp \"$meta_data_table_file\" \"$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt\""
-cp "$meta_data_table_file" "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt"
+echo "cp -L \"$meta_data_table_file\" \"$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt\""
+cp -L "$meta_data_table_file" "$Deploy_dir/$Subset_dir/meta_data_table_for_${Project_code}.txt"
 
 
 

@@ -238,20 +238,20 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     
     # copy fits file
     if [[ ! -f "${Deploy_dir}/$Subset_dir/${image_file}" ]] || [[ $overwrite -gt 0 ]]; then
-        echo_output "cp \"${image_path}\" \"${Deploy_dir}/$Subset_dir/${image_file}\""
-        cp "${image_path}" "${Deploy_dir}/$Subset_dir/${image_file}"
+        echo_output "cp -L \"${image_path}\" \"${Deploy_dir}/$Subset_dir/${image_file}\""
+        cp -L "${image_path}" "${Deploy_dir}/$Subset_dir/${image_file}"
         # also copy pb and pbcor files
         pb_image_path=$(echo "${image_path}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.pb.fits/g')
         pb_image_file=$(echo "${image_file}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.pb.fits/g')
         if [[ -f "${pb_image_path}" ]]; then
-            echo_output "cp \"${pb_image_path}\" \"${Deploy_dir}/$Subset_dir/${pb_image_file}\""
-            cp "${pb_image_path}" "${Deploy_dir}/$Subset_dir/${pb_image_file}"
+            echo_output "cp -L \"${pb_image_path}\" \"${Deploy_dir}/$Subset_dir/${pb_image_file}\""
+            cp -L "${pb_image_path}" "${Deploy_dir}/$Subset_dir/${pb_image_file}"
         fi
         pbcor_image_path=$(echo "${image_path}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.image.pbcor.fits/g')
         pbcor_image_file=$(echo "${image_file}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.image.pbcor.fits/g')
         if [[ -f "${pbcor_image_path}" ]]; then
-            echo_output "cp \"${pbcor_image_path}\" \"${Deploy_dir}/$Subset_dir/${pbcor_image_file}\""
-            cp "${pbcor_image_path}" "${Deploy_dir}/$Subset_dir/${pbcor_image_file}"
+            echo_output "cp -L \"${pbcor_image_path}\" \"${Deploy_dir}/$Subset_dir/${pbcor_image_file}\""
+            cp -L "${pbcor_image_path}" "${Deploy_dir}/$Subset_dir/${pbcor_image_file}"
         fi
     fi
     

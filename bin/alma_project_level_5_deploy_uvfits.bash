@@ -274,8 +274,8 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     
     # copy fits file
     if [[ ! -f "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}" ]] || [[ $overwrite -gt 0 ]]; then
-        echo_output "cp \"${image_path}\" \"${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}\""
-        cp "${image_path}" "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}"
+        echo_output "cp -L \"${image_path}\" \"${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}\""
+        cp -L "${image_path}" "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}"
     fi
     
     # cd into the directory

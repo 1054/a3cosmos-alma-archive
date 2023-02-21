@@ -241,26 +241,26 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     
     # copy fits file
     if [[ ! -f "${Deploy_dir}/$Subset_dir/${image_file}" ]] || [[ $overwrite -gt 0 ]]; then
-        echo_output "cp \"${image_path}\" \"${Deploy_dir}/$Subset_dir/${image_file}\""
-        cp "${image_path}" "${Deploy_dir}/$Subset_dir/${image_file}"
+        echo_output "cp -L \"${image_path}\" \"${Deploy_dir}/$Subset_dir/${image_file}\""
+        cp -L "${image_path}" "${Deploy_dir}/$Subset_dir/${image_file}"
         # also copy pb and pbcor files
         pb_image_path=$(echo "${image_path}" | perl -p -e 's/_cube_clean.image.fits$/_cube_clean.pb.fits/g')
         pb_image_file=$(echo "${image_file}" | perl -p -e 's/.cube.I.image.fits$/.cube.I.pb.fits/g')
         if [[ -f "${pb_image_path}" ]]; then
-            echo_output "cp \"${pb_image_path}\" \"${Deploy_dir}/$Subset_dir/${pb_image_file}\""
-            cp "${pb_image_path}" "${Deploy_dir}/$Subset_dir/${pb_image_file}"
+            echo_output "cp -L \"${pb_image_path}\" \"${Deploy_dir}/$Subset_dir/${pb_image_file}\""
+            cp -L "${pb_image_path}" "${Deploy_dir}/$Subset_dir/${pb_image_file}"
         fi
         pbcor_image_path=$(echo "${image_path}" | perl -p -e 's/_cube_clean.image.fits$/_cube_clean.image.pbcor.fits/g')
         pbcor_image_file=$(echo "${image_file}" | perl -p -e 's/.cube.I.image.fits$/.cube.I.image.pbcor.fits/g')
         if [[ -f "${pbcor_image_path}" ]]; then
-            echo_output "cp \"${pbcor_image_path}\" \"${Deploy_dir}/$Subset_dir/${pbcor_image_file}\""
-            cp "${pbcor_image_path}" "${Deploy_dir}/$Subset_dir/${pbcor_image_file}"
+            echo_output "cp -L \"${pbcor_image_path}\" \"${Deploy_dir}/$Subset_dir/${pbcor_image_file}\""
+            cp -L "${pbcor_image_path}" "${Deploy_dir}/$Subset_dir/${pbcor_image_file}"
         fi
         tclean_params_path=$(echo "${image_path}" | perl -p -e 's/_cube_clean.image.fits$/_cube_clean.image.tclean.last/g')
         tclean_params_file=$(echo "${image_file}" | perl -p -e 's/.cube.I.image.fits$/.cube.I.image.tclean.last/g')
         if [[ -f "${tclean_params_path}" ]]; then
-            echo_output "cp \"${tclean_params_path}\" \"${Deploy_dir}/$Subset_dir/${tclean_params_file}\""
-            cp "${tclean_params_path}" "${Deploy_dir}/$Subset_dir/${tclean_params_file}"
+            echo_output "cp -L \"${tclean_params_path}\" \"${Deploy_dir}/$Subset_dir/${tclean_params_file}\""
+            cp -L "${tclean_params_path}" "${Deploy_dir}/$Subset_dir/${tclean_params_file}"
         fi
     fi
     
