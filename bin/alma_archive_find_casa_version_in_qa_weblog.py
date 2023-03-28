@@ -49,7 +49,8 @@ for weblog_item in weblog_obj.getmembers():
         soup = BeautifulSoup(weblog_index_html_content, 'html.parser')
         
         #for soup_th in [t.parent for t in soup.findAll(text='CASA Version') if t.parent.name=='th']
-        for soup_th in soup.findAll('th', text='CASA Version'):
+        #for soup_th in soup.findAll('th', text='CASA Version'): # DeprecationWarning: The 'text' argument to find()-type methods is deprecated. Use 'string' instead.
+        for soup_th in soup.find_all('th', string='CASA Version'):
             #print(soup_th) # soup_th.name # soup_th.text
             for soup_td in soup_th.find_next_siblings():
                 #print(soup_td.text)
