@@ -114,11 +114,12 @@ fi
 # loop datasets and run ALMA calibration pipeline scriptForPI.py
 for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
     dataset_dir=${list_of_datasets[i]}
+    dataset_name=$(basename "${dataset_dir}")
     
     # run pipelines
     echo_output "Now running ALMA calibration pipeline for \"${dataset_dir}\""
-    echo_output "$(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh --nogui ${dataset_dir} > \".alma_archive_run_alma_pipeline_scriptForPI_${dataset_dir}.log\""
-    $(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh --nogui "${dataset_dir}" > ".alma_archive_run_alma_pipeline_scriptForPI_${dataset_dir}.log"
+    echo_output "$(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh --nogui ${dataset_dir} > \".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}.log\""
+    $(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh --nogui "${dataset_dir}" > ".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}.log"
     
     # check output
     if [[ -d "${dataset_dir}/calibrated" ]]; then
