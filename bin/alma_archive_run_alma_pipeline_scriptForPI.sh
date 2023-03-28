@@ -255,6 +255,7 @@ check_and_concat_calibrated_ms() {
 # read user inputs
 list_of_input_dirs=()
 log_file=""
+nogui=0
 i=1
 while [[ $i -le $# ]]; do
     str_arg=$(echo "${!i}" | sed -e 's/^--/-/g' | awk '{print tolower($0)}')
@@ -263,6 +264,8 @@ while [[ $i -le $# ]]; do
             i=$((i+1))
             log_file="${!i}"
         fi
+    elif [[ "$str_arg" == "-nogui" ]]; then
+        nogui=1
     else
         list_of_input_dirs+=("${!i}")
     fi
@@ -360,7 +363,7 @@ for (( i = 0; i < ${#list_of_input_dirs[@]}; i++ )); do
                 [[ $(find . -mindepth 1 -maxdepth 1 -type f -name "*_piperestorescript.py" | wc -l) -gt 0 ]]; then
                 # check DISPLAY
                 # note that for VLA we need a valid DISPLAY
-                if [[ $(xterm -e ls 2>&1 | grep "Can't open display:" | wc -l) -gt 0 ]]; then
+                if [[ $(xterm -e ls 2>&1 | grep "Can't open display:" | wc -l) -gt 0 ]] || [[ $nogui -gt 0 ]]; then
                     echo casa --pipeline --nogui --log2term -c "execfile('$script_name')"
                     casa --pipeline --nogui --log2term -c "execfile('$script_name')"
                 else
@@ -368,7 +371,7 @@ for (( i = 0; i < ${#list_of_input_dirs[@]}; i++ )); do
                     casa --pipeline -c "execfile('$script_name')"
                 fi
             else
-                if [[ $(xterm -e ls 2>&1 | grep "Can't open display:" | wc -l) -gt 0 ]]; then
+                if [[ $(xterm -e ls 2>&1 | grep "Can't open display:" | wc -l) -gt 0 ]] || [[ $nogui -gt 0 ]]; then
                     echo casa --nogui --log2term -c "execfile('$script_name')"
                     casa --nogui --log2term -c "execfile('$script_name')"
                 else
