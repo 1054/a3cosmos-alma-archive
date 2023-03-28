@@ -117,8 +117,8 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
     
     # run pipelines
     echo_output "Now running ALMA calibration pipeline for \"${dataset_dir}\""
-    echo_output "$(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh ${dataset_dir} > \".alma_archive_run_alma_pipeline_scriptForPI.log\""
-    $(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh "${dataset_dir}" > ".alma_archive_run_alma_pipeline_scriptForPI.log"
+    echo_output "$(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh ${dataset_dir} > \".alma_archive_run_alma_pipeline_scriptForPI_${dataset_dir}.log\""
+    $(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh "${dataset_dir}" > ".alma_archive_run_alma_pipeline_scriptForPI_${dataset_dir}.log"
     
     # check output
     if [[ -d "${dataset_dir}/calibrated" ]]; then
