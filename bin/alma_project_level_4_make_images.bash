@@ -173,7 +173,14 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
         if [[ $skipcalibrators -gt 0 ]] && [[ -f ../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt ]]; then
             if [[ $(cat ../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt | grep "OBSERVE_TARGET" | wc -l) -gt 0 ]]; then
                 cat ../Level_3_Split/$DataSet_dir/calibrated.ms.listobs.txt | grep "OBSERVE_TARGET" > list_of_observe_target_in_$DataSet_dir.txt
-                if [[ $(grep " ${source_name} " list_of_observe_target_in_$DataSet_dir.txt | wc -l) -eq 0 ]]; then
+                if [[ ${#source_name} -gt 20 ]]; then
+                    # 20230609 some source names are too long thus are truncated to 19chars with a wildcard in "listobs.txt"
+                    # e.g., "LONG-SOURCE-NAME-TR*"
+                    check_name="${source_name:0:19}*"
+                else
+                    check_name="${source_name}"
+                fi
+                if [[ $(grep " ${check_name} " list_of_observe_target_in_$DataSet_dir.txt | wc -l) -eq 0 ]]; then
                     continue
                 fi
             fi
