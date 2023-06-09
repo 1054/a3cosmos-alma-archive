@@ -211,7 +211,7 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
             
             # check existing images
             if ([[ -f "${ms_name}_cube_clean.image.fits" ]] && [[ "${width}" != "0" ]]) && \
-               ([[ -f "${ms_name}_cont_clean.image.fits" ]] || [[ -f "output_${source_name}_cont.I.image.fits" ]]); then
+               ([[ -f "${ms_name}_cont_clean.image.fits" ]] || [[ -f "output_${source_name}.cont.I.image.fits" ]]); then
                 echo "Found image cube \"${ms_name}_{cube,cont}_clean.image.fits\". Will not overwrite. Continue."
                 continue
             fi
