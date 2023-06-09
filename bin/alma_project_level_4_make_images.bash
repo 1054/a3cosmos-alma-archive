@@ -178,9 +178,9 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
                     # e.g., "LONG-SOURCE-NAME-TR*"
                     check_name="\b${source_name:0:19}*\b"
                 else
-                    check_name="${source_name}"
+                    check_name=" ${source_name} "
                 fi
-                if [[ $(grep " ${check_name} " list_of_observe_target_in_$DataSet_dir.txt | wc -l) -eq 0 ]]; then
+                if [[ $(grep "${check_name}" list_of_observe_target_in_$DataSet_dir.txt | wc -l) -eq 0 ]]; then
                     continue
                 fi
             fi
