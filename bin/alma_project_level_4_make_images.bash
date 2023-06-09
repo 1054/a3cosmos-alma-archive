@@ -176,7 +176,7 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
                 if [[ ${#source_name} -gt 20 ]]; then
                     # 20230609 some source names are too long thus are truncated to 19chars with a wildcard in "listobs.txt"
                     # e.g., "LONG-SOURCE-NAME-TR*"
-                    check_name="${source_name:0:19}*"
+                    check_name="\b${source_name:0:19}*\b"
                 else
                     check_name="${source_name}"
                 fi
