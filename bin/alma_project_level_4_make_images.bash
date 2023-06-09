@@ -210,7 +210,8 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
             ms_spw=$(echo "${ms_data}" | perl -p -e 's/split_.*_spw([0-9]+)_.*\.ms$/\1/g')
             
             # check existing images
-            if ([[ -f "${ms_name}_cube_clean.image.fits" ]] && [[ "${width}" != "0" ]]) && ([[ -f "${ms_name}_cont_clean.image.fits" ]]); then
+            if ([[ -f "${ms_name}_cube_clean.image.fits" ]] && [[ "${width}" != "0" ]]) && \
+               ([[ -f "${ms_name}_cont_clean.image.fits" ]] || [[ -f "output_${source_name}_cont.I.image.fits" ]]); then
                 echo "Found image cube \"${ms_name}_{cube,cont}_clean.image.fits\". Will not overwrite. Continue."
                 continue
             fi
@@ -402,8 +403,11 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
             if ([[ -f ../"${ms_name}_cube_clean.image.fits" ]] && [[ "${width}" != "0" ]]) && \
                ([[ -f "output_${source_name}.cont.I.image.fits" ]]); then
                 for (( l = 0; l < ${#list_of_run_tclean_dirs[@]}; l++ )); do
-                    find "processing/${list_of_run_tclean_dirs[l]}" -type d -maxdepth 1 -print0 | xargs -0 -I % rm -rf %
                     # clean up folders but keep fits, log and txt files
+                    #find "processing/${list_of_run_tclean_dirs[l]}" -type d -maxdepth 1 -print0 | xargs -0 -I % rm -rf %
+                    # 
+                    # clean up the whole processing folder
+                    rm -rf "processing"
                 done
             fi
         fi

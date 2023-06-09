@@ -55,7 +55,7 @@ else
     echo "" >> "${script_name}_tmp.py"
     chmod +x "${script_name}_tmp.py"
     echo "casa -c \"execfile(\\\"${script_name}_tmp.py\\\")\""
-    casa -c "execfile(\"${script_name}_tmp.py\")"
+    casa --nogui --nologger --log2term --nocrashreport -c "execfile(\"${script_name}_tmp.py\")"
 fi
 
 # check result
