@@ -18,6 +18,8 @@ def main(project_code):
     alma = Alma()
     alma.archive_url = 'https://almascience.eso.org'
     alma.cache_location = os.path.abspath('cache_dir')
+    if not os.path.isdir(alma.cache_location):
+        os.makedirs(alma.cache_location)
 
     
     #project_code = '2021.1.01650.S'
