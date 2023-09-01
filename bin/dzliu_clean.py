@@ -2022,8 +2022,8 @@ def dzliu_clean(dataset_ms,
         line_dirty_cube = '%s_%s_dirty'%(output_name, line_name_suffix)
         line_clean_cube = '%s_%s_clean'%(output_name, line_name_suffix)
         try:
-            lab_line_name, lab_line_freq = find_lab_line_name_and_freq(line_name)
-            reffreq = '%.6fGHz'%(lab_line_freq / (1.0 + galaxy_redshift) / 1e9)
+            lab_line_name, lab_line_freq = find_lab_line_name_and_freq(line_name[i])
+            reffreq = '%.6fGHz'%(lab_line_freq / (1.0 + galaxy_redshift))
         except:
             reffreq = None
         # 
