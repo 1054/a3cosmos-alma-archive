@@ -525,7 +525,16 @@ def find_lab_line_name_and_freq(line_name = ''):
 #   NOTE: mstransform does not support multiple channel ranges per spectral window (';'). -- https://casa.nrao.edu/docs/taskref/mstransform-task.html
 #   so now I use split() and average bins in each spw, then produce a ms with multiple spws, each spw has only single channel. 
 # 
-def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_redshift = None, line_name = None, line_velocity = None, line_velocity_width = None):
+def split_continuum_visibilities(
+        dataset_ms, 
+        output_ms, 
+        galaxy_name, 
+        galaxy_redshift = None, 
+        line_name = None, 
+        line_velocity = None, 
+        line_velocity_width = None, 
+        timebin = '30s', 
+    ):
     # 
     # Requires CASA module/function tb, default, inp, saveinputs, mstransform.
     # 
@@ -734,7 +743,7 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
             split_parameters['datacolumn'] = datacolumn
             split_parameters['width'] = chan1-chan0+1
             split_parameters['keepflags'] = False
-            split_parameters['timebin'] = '30s'
+            split_parameters['timebin'] = timebin # '30s'
             print2('split_parameters = %s'%(split_parameters))
             
             with open(os.path.dirname(output_ms)+os.sep+'saved_split_continuum_visibilities_task_split_inputs_for_continuum_spw%d_chan%d_%d.json'%(i, chan0, chan1), 'w') as fp:
@@ -788,6 +797,7 @@ def split_line_visibilities(
         line_velocity_width, 
         line_velocity_resolution, 
         spw = '', 
+        timebin = '30s', 
     ):
     # 
     # Requires CASA module/function tb, default, inp, saveinputs, mstransform.
@@ -1063,7 +1073,7 @@ def split_line_visibilities(
     mstransform_parameters['outframe'] = 'LSRK'
     mstransform_parameters['veltype'] = 'radio'
     mstransform_parameters['timeaverage'] = True
-    mstransform_parameters['timebin'] = '30s'
+    mstransform_parameters['timebin'] = timebin # '30s'
     # 
     # Reset tclean parameters
     # 
@@ -1936,6 +1946,7 @@ def dzliu_clean(dataset_ms,
                 continuum_clean_threshold = 3.5, 
                 line_clean_threshold = 3.5, 
                 robust = 2.0, 
+                timebin = '30s', 
                 max_imsize = None, 
                 skip_split = False, 
                 overwrite = False, 
@@ -2056,6 +2067,7 @@ def dzliu_clean(dataset_ms,
                 line_velocity_width = line_velocity_width[i], 
                 line_velocity_resolution = line_velocity_resolution[i], 
                 spw = spw, 
+                timebin = timebin, 
             )
         # 
         # Make dirty image
@@ -2083,7 +2095,7 @@ def dzliu_clean(dataset_ms,
                 phasecenter = phasecenter, threshold = threshold, 
                 pblimit = 0.05, pbmask = 0.05, 
                 beamsize = beamsize, max_imsize = max_imsize, 
-                robust = robust, 
+                robust = robust, reffreq = reffreq, 
             )
     
     # 
@@ -2119,6 +2131,7 @@ def dzliu_clean(dataset_ms,
                 line_name = line_name, 
                 line_velocity = line_velocity, 
                 line_velocity_width = line_velocity_width, 
+                timebin = timebin, 
             )
         # 
         # Make continuum
@@ -2126,6 +2139,7 @@ def dzliu_clean(dataset_ms,
             phasecenter = phasecenter, 
             beamsize = beamsize, 
             max_imsize = max_imsize, 
+            reffreq = reffreq, 
         )
         #
         # Compute rms in the dirty image
@@ -2144,7 +2158,7 @@ def dzliu_clean(dataset_ms,
                 phasecenter = phasecenter, threshold = threshold, 
                 pblimit = 0.05, pbmask = 0.05, 
                 beamsize = beamsize, max_imsize = max_imsize, 
-                robust = robust, 
+                robust = robust, reffreq = reffreq, 
             )
 
 

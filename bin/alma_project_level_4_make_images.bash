@@ -17,6 +17,7 @@ if [[ $# -eq 0 ]]; then
     echo "    -width 25km/s"
     echo "    -maximsize 2000"
     echo "    -dataset DataSet_Merged_A"
+    echo "    -do-not-skip-calibrators"
     echo "Notes: "
     echo "    This code will make clean cube images using ms data under \"Level_3_Split\" and store into \"Level_4_Data_Images\" classified by source names."
     exit
@@ -33,7 +34,7 @@ keepfiles=0
 skipcalibrators=1
 select_dataset=()
 while [[ $iarg -le $# ]]; do
-    istr=$(echo ${!iarg} | tr '[:upper:]' '[:lower:]')
+    istr=$(echo ${!iarg} | tr '[:upper:]' '[:lower:]' | perl -p -e 's/^[-]+/-/g')
     if [[ "$istr" == "-width" ]] && [[ $((iarg+1)) -le $# ]]; then
         iarg=$((iarg+1)); width="${!iarg}"; echo "Setting width=\"${!iarg}\""
     fi
@@ -159,7 +160,7 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
     else
         width_str="${width}"
     fi
-    list_of_unique_source_names=($(find ../Level_3_Split/$DataSet_dir/ -type d -name "split_*_spw*_width${width_str}.ms" | perl -p -e 's%.*split_(.*?)_spw[0-9]+_width[0-9kmsKMS]+.ms$%\1%g' | sort -V | uniq ) )
+    list_of_unique_source_names=($(find ../Level_3_Split/$DataSet_dir/ -type d -name "split_*_spw*_width${width_str}.ms" | perl -p -e 's%.*split_(.*?)_spw[0-9]+_width[0-9kmsKMS]+.ms$%\1%g' | grep -v "split_.*_spw.*_width.*.ms" | sort -V | uniq ) )
     if [[ ${#list_of_unique_source_names[@]} -eq 0 ]]; then
         echo_error "Error! Failed to find \"../Level_3_Split/$DataSet_dir/split_*_spw*_width${width_str}.ms\" and get unique source names!"
         exit 255
