@@ -1081,7 +1081,7 @@ def arcsec2float(arcsec_str):
 # 
 def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter = 30000, calcres = True, calcpsf = True, 
                              phasecenter = '', field = '', pbmask = 0.2, pblimit = 0.1, threshold = 0.0, specmode = 'cube', 
-                             beamsize = '', max_imsize = None):
+                             beamsize = '', max_imsize = None, robust = 2.0):
     # 
     # Requires CASA module/function tb.
     # 
@@ -1292,6 +1292,7 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     clean_parameters['restoringbeam'] = 'common' # '%sarcsec'%(synbeam) # Automatically estimate a common beam shape/size appropriate for all planes.
     #clean_parameters['weighting'] = 'briggs'
     #clean_parameters['robust'] = '2.0' # robust = -2.0 maps to A=1,B=0 or uniform weighting. robust = +2.0 maps to natural weighting. (robust=0.5 is equivalent to robust=0.0 in AIPS IMAGR.)
+    clean_parameters['robust'] = robust
     clean_parameters['nterms'] = 1 # nterms must be ==1 when deconvolver='hogbom' is chosen
     clean_parameters['chanchunks'] = -1 # This feature is experimental and may have restrictions on how chanchunks is to be chosen. For now, please pick chanchunks so that nchan/chanchunks is an integer. 
     clean_parameters['interactive'] = False
@@ -1883,6 +1884,7 @@ def dzliu_clean(dataset_ms,
                 line_velocity_resolution = None, 
                 continuum_clean_threshold = 3.5, 
                 line_clean_threshold = 3.5, 
+                robust = 2.0, 
                 max_imsize = None, 
                 skip_split = False, 
                 overwrite = False):
@@ -1980,10 +1982,17 @@ def dzliu_clean(dataset_ms,
         else:
             # 
             # Split line data and make channel averaging
-            split_line_visibilities(dataset_ms, line_ms, galaxy_name, line_name[i], line_velocity[i], line_velocity_width[i], line_velocity_resolution[i])
+            split_line_visibilities(dataset_ms, line_ms, 
+                galaxy_name, line_name[i], 
+                line_velocity[i], line_velocity_width[i], line_velocity_resolution[i],
+            )
         # 
         # Make dirty image
-        make_dirty_image(line_ms, line_dirty_cube, phasecenter = phasecenter, beamsize = beamsize, max_imsize = max_imsize)
+        make_dirty_image(line_ms, line_dirty_cube, 
+            phasecenter = phasecenter, 
+            beamsize = beamsize, 
+            max_imsize = max_imsize, 
+        )
         #
         # Compute rms in the dirty image
         result_imstat_dict = imstat(line_dirty_cube+'.image')
@@ -1998,7 +2007,12 @@ def dzliu_clean(dataset_ms,
             threshold = result_imstat_dict['rms'][0] * line_clean_threshold #<TODO># 3-sigma
             # 
             # Make clean image
-            make_clean_image(line_ms, line_clean_cube, phasecenter = phasecenter, threshold = threshold, pblimit = 0.05, pbmask = 0.05, beamsize = beamsize, max_imsize = max_imsize)
+            make_clean_image(line_ms, line_clean_cube, 
+                phasecenter = phasecenter, threshold = threshold, 
+                pblimit = 0.05, pbmask = 0.05, 
+                beamsize = beamsize, max_imsize = max_imsize, 
+                robust = robust, 
+            )
     
     # 
     # Make continuum image
@@ -2028,10 +2042,19 @@ def dzliu_clean(dataset_ms,
         else:
             # 
             # we need to find out line-free channels
-            split_continuum_visibilities(dataset_ms, continuum_ms, galaxy_name, galaxy_redshift = galaxy_redshift, line_name = line_name, line_velocity = line_velocity, line_velocity_width = line_velocity_width)
+            split_continuum_visibilities(dataset_ms, continuum_ms, galaxy_name, 
+                galaxy_redshift = galaxy_redshift, 
+                line_name = line_name, 
+                line_velocity = line_velocity, 
+                line_velocity_width = line_velocity_width, 
+            )
         # 
         # Make continuum
-        make_dirty_image_of_continuum(continuum_ms, continuum_dirty_cube, phasecenter = phasecenter, beamsize = beamsize, max_imsize = max_imsize)
+        make_dirty_image_of_continuum(continuum_ms, continuum_dirty_cube, 
+            phasecenter = phasecenter, 
+            beamsize = beamsize, 
+            max_imsize = max_imsize, 
+        )
         #
         # Compute rms in the dirty image
         result_imstat_dict = imstat(continuum_dirty_cube+'.image')
@@ -2045,7 +2068,12 @@ def dzliu_clean(dataset_ms,
             threshold = result_imstat_dict['rms'][0] * continuum_clean_threshold #<TODO># 3.5-sigma
             # 
             # Make clean image of the rough continuum 
-            make_clean_image_of_continuum(continuum_ms, continuum_clean_cube, phasecenter = phasecenter, threshold = threshold, pblimit = 0.05, pbmask = 0.05, beamsize = beamsize, max_imsize = max_imsize)
+            make_clean_image_of_continuum(continuum_ms, continuum_clean_cube, 
+                phasecenter = phasecenter, threshold = threshold, 
+                pblimit = 0.05, pbmask = 0.05, 
+                beamsize = beamsize, max_imsize = max_imsize, 
+                robust = robust, 
+            )
 
 
 
