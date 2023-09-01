@@ -375,7 +375,7 @@ def get_spectral_windows(vis, user_min_freq=None, user_max_freq=None):
     matched_spw_index = []
     matched_spw_num_chan = []
     matched_spw_freq_min_max = []
-    for i in range(len(tb.nrows())):
+    for i in range(tb.nrows()):
         num_chan = tb.getcell('NUM_CHAN', i)
         chan_freq = tb.getcell('CHAN_FREQ', i)
         min_freq = np.min(chan_freq)
