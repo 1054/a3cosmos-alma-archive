@@ -31,6 +31,7 @@ except:
 try:
     import casadef
 except:
+    import casatools
     class CasaDef():
         def __init__(self):
             self.casa_version = casatools.version_string()

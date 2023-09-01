@@ -21,7 +21,8 @@ import numpy as np
 try:
     import dzliu_clean
 except:
-    print('Please run "alma_archive_run_tclean_for_cube.sh" instead of "alma_archive_run_tclean_for_cube.py"!')
+    print('Failed to import dzliu_clean')
+    print('Please run "alma_archive_run_tclean_for_cube.sh" instead of "alma_archive_run_tclean_for_cube.py" to get the sys.path set correctly!')
     sys.exit()
 
 
