@@ -1952,7 +1952,8 @@ def dzliu_clean(dataset_ms,
     
     # 
     # 20210315 fix zero rest frequency
-    fix_zero_rest_frequency(dataset_ms)
+    # 20230901 no need this anymore
+    #fix_zero_rest_frequency(dataset_ms)
     
     # 
     # Make line cube
