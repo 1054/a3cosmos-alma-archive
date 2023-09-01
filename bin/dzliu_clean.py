@@ -1336,7 +1336,7 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     #clean_parameters['robust'] = '2.0' # robust = -2.0 maps to A=1,B=0 or uniform weighting. robust = +2.0 maps to natural weighting. (robust=0.5 is equivalent to robust=0.0 in AIPS IMAGR.)
     clean_parameters['robust'] = robust
     clean_parameters['nterms'] = 1 # nterms must be ==1 when deconvolver='hogbom' is chosen
-    clean_parameters['chanchunks'] = -1 # This feature is experimental and may have restrictions on how chanchunks is to be chosen. For now, please pick chanchunks so that nchan/chanchunks is an integer. 
+    #clean_parameters['chanchunks'] = -1 # This feature is experimental and may have restrictions on how chanchunks is to be chosen. For now, please pick chanchunks so that nchan/chanchunks is an integer. # 20230901 not valid anymore for casa 6.4.1
     clean_parameters['interactive'] = False
     #clean_parameters['savemodel'] = 'virtual' # 'none', 'virtual', 'modelcolumn'. 'virtual' for simple gridding, 'modelcolumn' for gridder='awproject'.
     #niter = 30000
