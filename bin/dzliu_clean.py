@@ -1123,7 +1123,7 @@ def arcsec2float(arcsec_str):
 # 
 def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter = 30000, calcres = True, calcpsf = True, 
                              phasecenter = '', field = '', pbmask = 0.2, pblimit = 0.1, threshold = 0.0, specmode = 'cube', 
-                             beamsize = '', max_imsize = None, robust = 2.0):
+                             beamsize = '', max_imsize = None, robust = 2.0, reffreq = None):
     # 
     # Requires CASA module/function tb.
     # 
@@ -1352,6 +1352,8 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     clean_parameters['niter'] = niter
     clean_parameters['calcres'] = calcres
     clean_parameters['calcpsf'] = calcpsf
+    if reffreq is not None:
+        clean_parameters['reffreq'] = reffreq # e.g. '115.271GHz'
     
     # 
     # Check mpicasa
@@ -1435,14 +1437,14 @@ def run_tclean_with_clean_parameters(clean_parameters):
     # 
     if os.path.isdir(imagename+'.image'):
         print2('Cleaning seems finished sucessfully.')
-        exportfits(imagename+'.image', imagename+'.image.fits')
-        exportfits(imagename+'.image.pbcor', imagename+'.image.pbcor.fits')
-        exportfits(imagename+'.psf', imagename+'.psf.fits')
-        exportfits(imagename+'.pb', imagename+'.pb.fits')
-        exportfits(imagename+'.model', imagename+'.model.fits')
-        exportfits(imagename+'.residual', imagename+'.residual.fits')
+        exportfits(imagename+'.image', imagename+'.image.fits', overwrite=True)
+        exportfits(imagename+'.image.pbcor', imagename+'.image.pbcor.fits', overwrite=True)
+        exportfits(imagename+'.psf', imagename+'.psf.fits', overwrite=True)
+        exportfits(imagename+'.pb', imagename+'.pb.fits', overwrite=True)
+        exportfits(imagename+'.model', imagename+'.model.fits', overwrite=True)
+        exportfits(imagename+'.residual', imagename+'.residual.fits', overwrite=True)
         if os.path.isdir(imagename+'.mask'):
-            exportfits(imagename+'.mask', imagename+'.mask.fits')
+            exportfits(imagename+'.mask', imagename+'.mask.fits', overwrite=True)
     else:
         raise Exception('Error! tclean failed to produce the output image "%s"!'%(imagename+'.image'))
     # 
