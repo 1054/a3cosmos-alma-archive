@@ -28,7 +28,13 @@ except:
 #tb = casac.table
 #from __casac__.table import table as tb
 #from recipes import makepb, pixelmask2cleanmask
-import casadef
+try:
+    import casadef
+except:
+    class CasaDef():
+        def __init__:
+            self.casa_version = casatools.version_string()
+    casadef = CasaDef()
 def version_tuple(version_str):
     return tuple(map(int, (version_str.split("."))))
 def version_less_than(version_str, compared_version_str):
