@@ -25,24 +25,23 @@ except:
     sys.exit()
 
 
-def go(vis):
+def go(vis, output_prefix='run_tclean_'):
     
-    paths = os.path.abspath(vis).split(os.sep)
-    if len(paths) < 7:
-        raise Exception('Error! The absolute path of the input data "%s" seems do not contain project, SB, GB, MB paths!'%(vis))
-    project = paths[-7]
-    SB = paths[-6].split('_')[-1]
-    GB = paths[-5].split('_')[-1]
-    MB = paths[-4].split('_')[-1]
-    calibrated_dir = paths[-3] # projec/SB/GB/MB/calibrated/run_tclean/vis.ms
+    #paths = os.path.abspath(vis).split(os.sep)
+    #if len(paths) < 7:
+    #    raise Exception('Error! The absolute path of the input data "%s" seems do not contain project, SB, GB, MB paths!'%(vis))
+    #project = paths[-7]
+    #SB = paths[-6].split('_')[-1]
+    #GB = paths[-5].split('_')[-1]
+    #MB = paths[-4].split('_')[-1]
+    #calibrated_dir = paths[-3] # projec/SB/GB/MB/calibrated/run_tclean/vis.ms
     
-    fields, phasecenters = dzliu_clean.get_all_fields(vis)
+    fields, fieldindices, phasecenters = dzliu_clean.get_field_phasecenters(vis)
     
-    spw_ids, spw_names, spw_nchan, spw_ref_freqs = dzliu_clean.get_all_spws(vis)
+    spw_ids, spw_nchan, spw_freq_minmax = dzliu_clean.get_spectral_windows(vis)
     print('spw_ids = %s'%(str(spw_ids)))
-    print('spw_names = %s'%(str(spw_names)))
     print('spw_nchan = %s'%(str(spw_nchan)))
-    print('spw_ref_freqs = %s'%(str(spw_ref_freqs)))
+    print('spw_freq_minmax = %s'%(str(spw_freq_minmax)))
     
     list_of_cubes = []
     if os.path.isfile('list_of_cubes.json'):
@@ -59,7 +58,8 @@ def go(vis):
         
         for spw_id in spw_ids:
             
-            final_output_name = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%d'%(project, SB, GB, MB, field, spw_id)
+            #final_output_name = '%s_SB_%s_GB_%s_MB_%s_%s_sci.spw%d'%(project, SB, GB, MB, field, spw_id)
+            final_output_name = '%s%s_spw%d'%(output_prefix, field.replace(' ', '_'), spw_id)
             print('final_output_name = %s'%(final_output_name))
             
             if not os.path.isfile(final_output_name+'.cube.I.image.fits'):

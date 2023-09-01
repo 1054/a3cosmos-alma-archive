@@ -337,6 +337,50 @@ def get_field_phasecenters(vis, galaxy_name = '', column_name = 'DELAY_DIR'):
 
 
 
+# 
+# def get spectral windows
+#
+def get_spectral_windows(vis, user_min_freq=None, user_max_freq=None):
+    """
+    Get Measurement Set spectral windows ('SPECTRAL_WINDOW'). 
+    
+    Return 3 lists: matched_spw_index, matched_spw_num_chan, matched_spw_freq_min_max
+    
+    The 2nd return is a list of two-element list: a min and a max.
+    
+    Options:
+        user_min_freq, select spw that contains channels with frequency above this value, in Hz.
+        user_max_freq, select spw that contains channels with frequency below this value, in Hz.
+    
+    """
+    #
+    # Requires CASA module/function tb.
+    #
+    set_casalog_origin('get_spectral_windows')
+    #
+    tb.open(vis+os.sep+'SPECTRAL_WINDOW')
+    matched_spw_index = []
+    matched_spw_num_chan = []
+    matched_spw_freq_min_max = []
+    for i in range(len(tb.nrows())):
+        num_chan = tb.getcell('NUM_CHAN', i)
+        chan_freq = tb.getcell('CHAN_FREQ', i)
+        min_freq = np.min(chan_freq)
+        max_freq = np.max(chan_freq)
+        if user_min_freq is not None:
+            if max_freq < user_min_freq:
+                continue
+        if user_max_freq is not None:
+            if min_freq > user_max_freq:
+                continue
+        matched_spw_index.append(i)
+        matched_spw_num_chan.append(num_chan)
+        matched_spw_freq_min_max.append([min_freq, max_freq])
+    tb.close()
+    return matched_spw_index, matched_spw_num_chan, matched_spw_freq_min_max
+
+
+
 
 def get_datacolumn(vis):
     # 
