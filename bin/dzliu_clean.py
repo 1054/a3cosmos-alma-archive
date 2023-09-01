@@ -1091,6 +1091,12 @@ def split_line_visibilities(
     
     # 
     restore_casalog_origin()
+    
+    # 
+    return_dict = dict(
+        linefreq = linefreq,
+    )
+    return return_dict
 
 
 
@@ -1967,7 +1973,9 @@ def dzliu_clean(dataset_ms,
         output_name = output_dir+os.sep+'%s'%(galaxy_name_cleaned)
     
     if galaxy_redshift is not None and line_velocity is None:
-        line_velocity = 2.99792458e5 * galaxy_redshift
+        line_velocity = 2.99792458e5 * galaxy_redshift # v_opt = cz
+    elif galaxy_redshift is None and line_velocity is not None:
+        galaxy_redshift = 2.99792458e5 / line_velocity
     
     # 
     # Make lists
@@ -2009,9 +2017,15 @@ def dzliu_clean(dataset_ms,
     for i in range(num_lines):
         # 
         # Set output name for each line
-        line_ms = '%s_%s.ms'%(output_name, line_name[i])
-        line_dirty_cube = '%s_%s_dirty'%(output_name, line_name[i])
-        line_clean_cube = '%s_%s_clean'%(output_name, line_name[i])
+        line_name_suffix = re.sub(r'[^a-zA-Z0-9_]', r'_', line_name[i])
+        line_ms = '%s_%s.ms'%(output_name, line_name_suffix)
+        line_dirty_cube = '%s_%s_dirty'%(output_name, line_name_suffix)
+        line_clean_cube = '%s_%s_clean'%(output_name, line_name_suffix)
+        try:
+            lab_line_name, lab_line_freq = find_lab_line_name_and_freq(line_name)
+            reffreq = '%.6fGHz'%(lab_line_freq / (1.0 + galaxy_redshift) / 1e9)
+        except:
+            reffreq = None
         # 
         # Check existing files
         if overwrite:
@@ -2049,6 +2063,7 @@ def dzliu_clean(dataset_ms,
             phasecenter = phasecenter, 
             beamsize = beamsize, 
             max_imsize = max_imsize, 
+            reffreq = reffreq, 
         )
         #
         # Compute rms in the dirty image
