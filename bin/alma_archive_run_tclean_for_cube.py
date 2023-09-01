@@ -71,10 +71,11 @@ def go(vis, output_prefix='run_tclean_'):
                                             galaxy_name = field, 
                                             make_line_cube = True, 
                                             make_continuum = False, 
-                                            line_name = 'cube_spw%d'%(spw_id), 
+                                            spw = str(spw_id), 
+                                            line_name = 'cube', 
                                             line_velocity = 0, 
                                             line_velocity_width = 0, 
-                                            line_velocity_resolution = 30.0, 
+                                            line_velocity_resolution = 25.0, # km/s
                                             beamsize = 'common', 
                                             robust = 2.0, 
                                            )

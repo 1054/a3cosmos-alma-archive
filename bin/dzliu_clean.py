@@ -762,7 +762,16 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
 # 
 # def split_line_visibilities
 # 
-def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_velocity, line_velocity_width, line_velocity_resolution):
+def split_line_visibilities(
+        dataset_ms, 
+        output_ms, 
+        galaxy_name, 
+        line_name, 
+        line_velocity, 
+        line_velocity_width, 
+        line_velocity_resolution, 
+        spw = '', 
+    ):
     # 
     # Requires CASA module/function tb, default, inp, saveinputs, mstransform.
     # 
@@ -881,6 +890,20 @@ def split_line_visibilities(dataset_ms, output_ms, galaxy_name, line_name, line_
     #if len(lineSpwIds) >= 2:
     #    print2('Warning! More than one spws contain the line, we will take the average REF_FREQUENCY.')
     #    ref_freq_Hz = np.mean(lineSpwRefFreqs)
+    
+    # if user has selected spw, then use it
+    if spw is not None and spw != '':
+        userSpwIds = np.array(spw.split(',')).astype(int)
+        userSelectSpw = []
+        for userSpwId in userSpwIds:
+            if userSpwId not in lineSpwIds:
+                raise Exception('Error! The input user spw is not a valid spw (%s)'%(str(lineSpwIds)))
+            userSelectSpw = lineSpwIds.index(userSpwId)
+        lineSpwIds = [lineSpwIds[t] for t in userSelectSpw]
+        lineSpwChanWidths = [lineSpwChanWidths[t] for t in userSelectSpw]
+        lineSpwChanFreqs = [lineSpwChanFreqs[t] for t in userSelectSpw]
+        lineSpwRefFreqs = [lineSpwRefFreqs[t] for t in userSelectSpw]
+        lineSpwRefChans = [lineSpwRefChans[t] for t in userSelectSpw]
     
     # if linefreq is not given by the line_name, then set it to the center of bandwidth
     t_max_freq = np.max([np.max(t) for t in lineSpwChanFreqs])
@@ -1876,6 +1899,7 @@ def dzliu_clean(dataset_ms,
                 galaxy_redshift = None, 
                 make_line_cube = True, 
                 make_continuum = True, 
+                spw = '', 
                 phasecenter = '', 
                 beamsize = '', 
                 line_name = None, 
@@ -1887,7 +1911,8 @@ def dzliu_clean(dataset_ms,
                 robust = 2.0, 
                 max_imsize = None, 
                 skip_split = False, 
-                overwrite = False):
+                overwrite = False, 
+    ):
     # 
     set_casalog_origin('dzliu_clean')
     
@@ -1983,9 +2008,15 @@ def dzliu_clean(dataset_ms,
         else:
             # 
             # Split line data and make channel averaging
-            split_line_visibilities(dataset_ms, line_ms, 
-                galaxy_name, line_name[i], 
-                line_velocity[i], line_velocity_width[i], line_velocity_resolution[i],
+            split_line_visibilities(
+                dataset_ms = dataset_ms, 
+                output_ms = line_ms, 
+                galaxy_name = galaxy_name, 
+                line_name = line_name[i], 
+                line_velocity = line_velocity[i], 
+                line_velocity_width = line_velocity_width[i], 
+                line_velocity_resolution = line_velocity_resolution[i], 
+                spw = spw, 
             )
         # 
         # Make dirty image
