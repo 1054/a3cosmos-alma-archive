@@ -1948,6 +1948,9 @@ def dzliu_clean(dataset_ms,
     else:
         output_name = output_dir+os.sep+'%s'%(galaxy_name_cleaned)
     
+    if galaxy_redshift is not None and line_velocity is None:
+        line_velocity = 2.99792458e5 * galaxy_redshift
+    
     # 
     # Make lists
     if line_name is not None:
