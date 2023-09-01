@@ -102,6 +102,22 @@ def print2(message):
 
 
 # 
+# def NumpyEncoder
+# 
+class NumpyEncoder(json.JSONEncoder):
+    """ Special json encoder for numpy types """
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+
+
+# 
 # def parseSpw()
 # 
 #   based on https://stackoverflow.com/questions/712460/interpreting-number-ranges-in-python
@@ -722,7 +738,7 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
             print2('split_parameters = %s'%(split_parameters))
             
             with open(os.path.dirname(output_ms)+os.sep+'saved_split_continuum_visibilities_task_split_inputs_for_continuum_spw%d_chan%d_%d.json'%(i, chan0, chan1), 'w') as fp:
-                json.dump(split_parameters, fp, indent = 4)
+                json.dump(split_parameters, fp, indent=4, cls=NumpyEncoder)
             
             split(**split_parameters)
             
@@ -739,7 +755,7 @@ def split_continuum_visibilities(dataset_ms, output_ms, galaxy_name, galaxy_reds
     print2('concat_parameters = %s'%(concat_parameters))
     
     with open(os.path.dirname(output_ms)+os.sep+'saved_split_continuum_visibilities_task_concat_inputs_for_continuum.json', 'w') as fp:
-        json.dump(concat_parameters, fp, indent = 4)
+        json.dump(concat_parameters, fp, indent=4, cls=NumpyEncoder)
     
     concat(**concat_parameters)
     
@@ -1066,7 +1082,7 @@ def split_line_visibilities(
     #mstransform()
     
     with open(os.path.dirname(output_ms)+os.sep+'saved_mstransform_inputs.json', 'w') as fp:
-        json.dump(mstransform_parameters, fp, indent = 4)
+        json.dump(mstransform_parameters, fp, indent=4, cls=NumpyEncoder)
     
     mstransform(**mstransform_parameters)
     
@@ -1407,7 +1423,7 @@ def run_tclean_with_clean_parameters(clean_parameters):
     # Print and save inputs (New method)
     # 
     with open(os.path.dirname(imagename)+os.sep+'saved_tclean_inputs.json', 'w') as fp:
-        json.dump(clean_parameters, fp, indent = 4)
+        json.dump(clean_parameters, fp, indent=4, cls=NumpyEncoder)
     # 
     print2('clean_parameters = %s'%(clean_parameters))
     # 
