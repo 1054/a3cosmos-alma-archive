@@ -766,6 +766,7 @@ def split_line_visibilities(
         dataset_ms, 
         output_ms, 
         galaxy_name, 
+        galaxy_redshift, 
         line_name, 
         line_velocity, 
         line_velocity_width, 
@@ -843,6 +844,8 @@ def split_line_visibilities(
         # find line name from lab line list
         lab_line_name, lab_line_freq = find_lab_line_name_and_freq(line_name)
         #linefreq = lab_line_freq*(1.0-(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with radio definition
+        if galaxy_redshift is not None and line_velocity is None:
+            line_velocity = 2.99792458e5 * galaxy_redshift
         linefreq = lab_line_freq/(1.0+(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with optical definition
         # 
         # find which spw(s) contain(s) the target line
@@ -897,7 +900,7 @@ def split_line_visibilities(
         userSelectSpw = []
         for userSpwId in userSpwIds:
             if userSpwId not in lineSpwIds:
-                raise Exception('Error! The input user spw is not a valid spw (%s)'%(str(lineSpwIds)))
+                raise Exception('Error! The input user spw %s does not match the valid spw (%s)'%(spw, str(lineSpwIds)))
             userSelectSpw = lineSpwIds.index(userSpwId)
         lineSpwIds = [lineSpwIds[t] for t in userSelectSpw]
         lineSpwChanWidths = [lineSpwChanWidths[t] for t in userSelectSpw]
@@ -2012,6 +2015,7 @@ def dzliu_clean(dataset_ms,
                 dataset_ms = dataset_ms, 
                 output_ms = line_ms, 
                 galaxy_name = galaxy_name, 
+                galaxy_redshift = galaxy_redshift, 
                 line_name = line_name[i], 
                 line_velocity = line_velocity[i], 
                 line_velocity_width = line_velocity_width[i], 
