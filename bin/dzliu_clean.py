@@ -2017,7 +2017,7 @@ def dzliu_clean(dataset_ms,
     for i in range(num_lines):
         # 
         # Set output name for each line
-        line_name_suffix = re.sub(r'[^a-zA-Z0-9_]', r'_', line_name[i])
+        line_name_suffix = re.sub(r'[^a-zA-Z0-9_]', r'_', line_name[i]).strip('_')
         line_ms = '%s_%s.ms'%(output_name, line_name_suffix)
         line_dirty_cube = '%s_%s_dirty'%(output_name, line_name_suffix)
         line_clean_cube = '%s_%s_clean'%(output_name, line_name_suffix)
