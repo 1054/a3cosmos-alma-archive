@@ -12,17 +12,21 @@ fi
 
 
 # check CASA
-if [[ ! -d "$HOME/Softwares/CASA" ]]; then
-    echo "Error! \"$HOME/Softwares/CASA\" was not found!"
-    echo "Sorry, we need to put all versions of CASA under \"$HOME/Softwares/CASA/Portable/\" directory!"
-    exit 1
+if [[ $(type casa 2>/dev/null | wc -l) -eq 0 ]]; then
+    if [[ ! -d "$HOME/Softwares/CASA" ]]; then
+        echo "Error! \"$HOME/Softwares/CASA\" was not found!"
+        echo "Sorry, we need to put all versions of CASA under \"$HOME/Softwares/CASA/Portable/\" directory!"
+        exit 1
+    fi
+    if [[ ! -f "$HOME/Softwares/CASA/SETUP.bash" ]]; then
+        echo "Error! \"$HOME/Softwares/CASA/SETUP.bash\" was not found!"
+        echo "Sorry, please ask Daizhong by emailing dzliu@mpia.de!"
+        exit 1
+    fi
+    casa_setup_script_path="$HOME/Softwares/CASA/SETUP.bash"
+    echo source "$casa_setup_script_path"
+    source "$casa_setup_script_path"
 fi
-if [[ ! -f "$HOME/Softwares/CASA/SETUP.bash" ]]; then
-    echo "Error! \"$HOME/Softwares/CASA/SETUP.bash\" was not found!"
-    echo "Sorry, please ask Daizhong by emailing dzliu@mpia.de!"
-    exit 1
-fi
-casa_setup_script_path="$HOME/Softwares/CASA/SETUP.bash"
 
 
 
@@ -57,8 +61,6 @@ ln -fs ../"$data_name"
 
 
 # Run CASA
-echo source "$casa_setup_script_path"
-source "$casa_setup_script_path"
 
 echo casa --nogui --log2term -c "\"import sys; sys.path.append(\\\"$(dirname ${BASH_SOURCE[0]})\\\"); import alma_archive_run_tclean_for_cube; alma_archive_run_tclean_for_cube.go(\\\"$data_name\\\")\""
 casa --nogui --log2term -c "import sys; sys.path.append(\"$(dirname ${BASH_SOURCE[0]})\"); import alma_archive_run_tclean_for_cube; alma_archive_run_tclean_for_cube.go(\"$data_name\")"
