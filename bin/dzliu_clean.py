@@ -2139,7 +2139,6 @@ def dzliu_clean(dataset_ms,
             phasecenter = phasecenter, 
             beamsize = beamsize, 
             max_imsize = max_imsize, 
-            reffreq = reffreq, 
         )
         #
         # Compute rms in the dirty image
@@ -2158,7 +2157,7 @@ def dzliu_clean(dataset_ms,
                 phasecenter = phasecenter, threshold = threshold, 
                 pblimit = 0.05, pbmask = 0.05, 
                 beamsize = beamsize, max_imsize = max_imsize, 
-                robust = robust, reffreq = reffreq, 
+                robust = robust, 
             )
 
 
