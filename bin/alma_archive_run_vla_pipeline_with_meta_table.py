@@ -30,6 +30,7 @@ if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_in
 if len(sys.argv) <= 1:
     print('Usage: alma_archive_run_vla_pipeline_with_meta_table.py "meta_table_file.txt"')
     print('Options: [-vla-pipeline-path] [-casa-path] [-dataset] [-verbose]')
+    print('Notes: the "meta_table_file.txt" must have following columns: ')
     sys.exit()
 
 meta_table_file = ''
@@ -79,10 +80,13 @@ if meta_table_file == '':
 
 
 # 
-# check ~/Softwares/CASA/Portable/EVLA_pipeline1.4.0_for_CASA_5.0.0
+# check VLA Scripted Calibration Pipeline in ~/Softwares/CASA/Portable/EVLA_pipeline*
+# see https://science.nrao.edu/facilities/vla/data-processing/pipeline/scripted-pipeline
+# do not forget to make sure pipepath is set correctly in EVLA_pipeline.py
 # 
 if EVLA_pipeline_path == '':
-    EVLA_pipeline_path = os.path.expanduser('~')+'/Software/CASA/Portable/EVLA_pipeline1.4.0_CASA5.0.0' # try this path
+    #EVLA_pipeline_path = os.path.expanduser('~')+'/Software/CASA/Portable/EVLA_pipeline1.4.0_CASA5.0.0' # try this path
+    EVLA_pipeline_path = os.path.expanduser('~/Software/CASA/Portable/EVLA_pipeline1.4.2_CASA5.3.0') # 2023-09
     if not os.path.isdir(EVLA_pipeline_path):
         EVLA_pipeline_path = ''
 if EVLA_pipeline_path == '':
@@ -90,7 +94,8 @@ if EVLA_pipeline_path == '':
     sys.exit(255)
 
 if CASA_path == '':
-    CASA_path = os.path.expanduser('~')+'/Software/CASA/Portable/casa-release-5.0.0-218.el6' # try this path
+    #CASA_path = os.path.expanduser('~')+'/Software/CASA/Portable/casa-release-5.0.0-218.el6' # try this path
+    CASA_path = os.path.expanduser('~/Software/CASA/Portable/casa-release-5.3.0-143.el7')
     if not os.path.isdir(CASA_path):
         CASA_path = ''
 if CASA_path == '':
@@ -221,7 +226,7 @@ for i in range(len(output_table)):
     # 
     # check t_Dataset_dirname
     if not os.path.isdir('Level_2_Calib/'+t_Dataset_dirname):
-        print('Error! Data folder/link not found: %r. Please run previous step "alma_archive_make_data_dirs_with_meta_table.py" first.')
+        print('Error! Data folder/link not found: %r. Please run previous step "alma_archive_make_data_dirs_with_meta_table.py" first.'%('Level_2_Calib/'+t_Dataset_dirname))
         sys.exit(255)
     # 
     # set t_Dataset_dirpath
@@ -230,7 +235,7 @@ for i in range(len(output_table)):
     # write t_Dataset_dirpath/README_CASA_VERSION
     if not os.path.isfile(t_Dataset_dirpath+'/README_CASA_VERSION'):
         with open(t_Dataset_dirpath+'/README_CASA_VERSION', 'w') as fp:
-            fp.write('CASA version 5.0.0\n')
+            fp.write('CASA version 5.3.0\n') #<TODO><UPDATE>#
     # 
     # check calibrated/calibrated.ms
     t_calibrated_dir = 'Level_2_Calib/'+t_Dataset_dirname+'/calibrated'
@@ -248,9 +253,11 @@ for i in range(len(output_table)):
     t_calib_raw_path = 'Level_2_Calib/'+t_Dataset_dirname+'/raw'
     t_calib_sdm_path = t_calibrated_dir+os.sep+t_Dataset_name
     if not os.path.isdir(t_calib_raw_path) and not os.path.islink(t_calib_raw_path):
-        os.symlink('../../'+t_raw_path, t_calib_raw_path)
+        #os.symlink('../../'+t_raw_path, t_calib_raw_path)
+        my_function_to_make_symbolic_link('../../'+t_raw_path, t_calib_raw_path)
     if not os.path.isdir(t_calib_sdm_path) and not os.path.islink(t_calib_sdm_path):
-        os.symlink('../../../'+t_raw_path, t_calib_sdm_path)
+        #os.symlink('../raw', t_calib_sdm_path)
+        my_function_to_make_symbolic_link('../raw', t_calib_sdm_path)
     
     # 
     # 
