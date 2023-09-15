@@ -874,6 +874,14 @@ def split_line_visibilities(
             line_velocity = 2.99792458e5 * galaxy_redshift
         linefreq = lab_line_freq/(1.0+(line_velocity/2.99792458e5))*1e9 # Hz, for velocity with optical definition
         # 
+        if line_velocity_width is None:
+            print2('line_velocity_width is None, setting it to 1000 km/s')
+            line_velocity_width = 1000.0
+        if line_velocity_width > 0.0:
+            linefreqwidth = (line_velocity_width/2.99792458e5) * linefreq
+        else:
+            raise Exception('The line_velocity_width must be positive for extracting a line cube! It is %s'%(line_velocity_width))
+        # 
         # find which spw(s) contain(s) the target line
         for i in valid_spw_indicies:
             spw_chan_freq_list = spw_chan_freq_col[i]
@@ -882,7 +890,7 @@ def split_line_visibilities(
             spw_ref_chan = spw_ref_chan_col[i]
             print2('spw_%d, ref_chan %d, ref_freq %.3e Hz, chan_freq %.3e .. %.3e Hz (%d), chan_width %.3e Hz'%(i, spw_ref_chan, spw_ref_freq, np.max(spw_chan_freq_list), np.min(spw_chan_freq_list), len(spw_chan_freq_list), np.min(spw_chan_width_list) ) )
             # find the target line in these spw
-            if linefreq >= np.min(spw_chan_freq_list) and linefreq <= np.max(spw_chan_freq_list):
+            if (linefreq+linefreqwidth/2.0) >= np.min(spw_chan_freq_list) and (linefreq-linefreqwidth/2.0) <= np.max(spw_chan_freq_list):
                 # found our target line within this spw
                 #ref_freq_Hz = spw_ref_freq
                 lineSpwIds.append(i)
@@ -2075,7 +2083,7 @@ def dzliu_clean(dataset_ms,
             phasecenter = phasecenter, 
             beamsize = beamsize, 
             max_imsize = max_imsize, 
-            reffreq = reffreq, 
+            #reffreq = reffreq, 
         )
         #
         # Compute rms in the dirty image
@@ -2095,7 +2103,8 @@ def dzliu_clean(dataset_ms,
                 phasecenter = phasecenter, threshold = threshold, 
                 pblimit = 0.05, pbmask = 0.05, 
                 beamsize = beamsize, max_imsize = max_imsize, 
-                robust = robust, reffreq = reffreq, 
+                robust = robust, 
+                #reffreq = reffreq, 
             )
     
     # 

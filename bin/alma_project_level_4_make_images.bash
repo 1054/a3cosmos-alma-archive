@@ -18,6 +18,7 @@ if [[ $# -eq 0 ]]; then
     echo "    -maximsize 2000"
     echo "    -dataset DataSet_Merged_A"
     echo "    -do-not-skip-calibrators"
+    echo "    -allow-empty-dataset"
     echo "Notes: "
     echo "    This code will make clean cube images using ms data under \"Level_3_Split\" and store into \"Level_4_Data_Images\" classified by source names."
     exit
@@ -32,6 +33,7 @@ maximsize=2000
 overwrite=0
 keepfiles=0
 skipcalibrators=1
+allowemptydataset=0
 select_dataset=()
 while [[ $iarg -le $# ]]; do
     istr=$(echo ${!iarg} | tr '[:upper:]' '[:lower:]' | perl -p -e 's/^[-]+/-/g')
@@ -48,6 +50,9 @@ while [[ $iarg -le $# ]]; do
         skipcalibrators=1
     elif [[ "$istr" == "-noskipcalibrators" ]] || [[ "$istr" == "-do-not-skip-calibrators" ]]; then
         skipcalibrators=0
+    fi
+    if [[ "$istr" == "-allowempty" ]] || [[ "$istr" == "-allow-empty-dataset" ]]; then
+        allowemptydataset=1
     fi
     if [[ "$istr" == "-overwrite" ]]; then
         overwrite=$((overwrite+1))
@@ -163,6 +168,9 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
     list_of_unique_source_names=($(find ../Level_3_Split/$DataSet_dir/ -type d -name "split_*_spw*_width${width_str}.ms" | perl -p -e 's%.*split_(.*?)_spw[0-9]+_width[0-9kmsKMS]+.ms$%\1%g' | grep -v "split_.*_spw.*_width.*.ms" | sort -V | uniq ) )
     if [[ ${#list_of_unique_source_names[@]} -eq 0 ]]; then
         echo_error "Error! Failed to find \"../Level_3_Split/$DataSet_dir/split_*_spw*_width${width_str}.ms\" and get unique source names!"
+        if [[ $allowemptydataset -gt 0 ]]; then
+            continue
+        fi
         exit 255
     fi
     
