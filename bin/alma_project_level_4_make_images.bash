@@ -326,7 +326,9 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
             
             list_of_run_tclean_dirs+=("run_tclean_${ms_name}")
             list_of_continuum_ms_data+=("run_tclean_${ms_name}/${ms_name}_cont.ms")
-            list_of_concatenated_spws+=("$ms_spw")
+            if [[ "x ${list_of_concatenated_spws[@]} x" != *" $ms_spw "* ]]; then # 20230921 in case duplicated spw in mosaic
+                list_of_concatenated_spws+=("$ms_spw")
+            fi
             
             
             # concatenate continuum ms data
