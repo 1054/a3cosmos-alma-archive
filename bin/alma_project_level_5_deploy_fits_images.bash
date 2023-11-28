@@ -21,8 +21,12 @@ Deploy_dir=$(perl -MCwd -e 'print Cwd::abs_path shift' $(echo "$2" | sed -e 's%/
 Script_dir=$(dirname $(perl -MCwd -e 'print Cwd::abs_path shift' "${BASH_SOURCE[0]}"))
 Subset_dir="images" # "fits"
 overwrite=0
+nogzip=0
 if [[ " $@ "x == *" -overwrite "*x ]] || [[ " $@ "x == *" --overwrite "*x ]] || [[ " $@ "x == *" overwrite "*x ]]; then
     overwrite=1
+fi
+if [[ " $@ "x == *" -nogzip "*x ]] || [[ " $@ "x == *" --no-gzip "*x ]] || [[ " $@ "x == *" nogzip "*x ]]; then
+    nogzip=1
 fi
 
 # define logging files and functions
@@ -46,6 +50,46 @@ echo_error()
     echo "*************************************************************"
 }
 
+mathcalc() { awk "BEGIN {print ($1);}" ; }
+
+get_fits_header_key() 
+{
+    # read fits header 
+    if [[ $# -ge 2 ]]; then
+        keyname="$2"
+        imfile="$1"
+        if [[ "$imfile" == *".gz" ]]; then
+            imfile=$(echo "$imfile" | perl -p -e 's/\.gz$//g')
+        fi
+        hdrfile="$imfile.hdr"
+        if [[ ! -f "$hdrfile" ]]; then
+            if [[ ! -f "$imfile" ]]; then
+                if [[ -f "$imfile.gz" ]]; then
+                    gunzip -c "$imfile.gz" > "$imfile"
+                else
+                    echo "Error! get_fits_header_key: File not found: \"$imfile\" or \"$imfile.gz\""
+                    exit 255
+                fi
+                fitshdr "$imfile" > "$hdrfile"
+                rm "$imfile"
+            else
+                fitshdr "$imfile" > "$hdrfile"
+            fi
+        fi
+        keyvalues=($(cat "$hdrfile" | grep "^${keyname} *=.*" | tail -n 1 | perl -p -e 's/ *= */ /g'))
+        outvalues=()
+        for (( kk=1; kk<${#keyvalues[@]}; kk++ )); do
+            if [[ "${keyvalues[kk]}" == "/" ]]; then
+                break
+            else
+                # read non-comment header key value
+                outvalues+=("${keyvalues[kk]}")
+            fi
+        done
+        echo "${outvalues[@]}"
+    fi
+}
+
 
 # begin
 echo_output "Began processing ALMA project ${Project_code} with $(basename ${BASH_SOURCE[0]})"
@@ -59,15 +103,15 @@ if [[ "${Deploy_dir}"x == ""x ]]; then
 fi
 
 
-# check wcstools gethead sethead
-for check_command in gethead sethead; do
+# check wcstools gethead sethead and wcslib fitshdr
+for check_command in gethead sethead fitshdr; do
     if [[ $(type ${check_command} 2>/dev/null | wc -l) -eq 0 ]]; then
         # if not executable in the command line, try to find it in "$HOME/Cloud/Github/Crab.Toolkit.PdBI"
         if [[ -d "$HOME/Cloud/Github/Crab.Toolkit.PdBI" ]] && [[ -f "$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash" ]]; then
             source "$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash"
         else
             # if not executable in the command line, nor in "$HOME/Cloud/Github/Crab.Toolkit.PdBI", report error.
-            echo_error "Error! \"${check_command}\" is not executable in the command line! Please install WCSTOOLS, or check your \$PATH!"
+            echo_error "Error! \"${check_command}\" is not executable in the command line! Please install WCSTOOLS, WCSLIB, or check your \$PATH!"
             exit 1
         fi
     fi
@@ -236,31 +280,68 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     
     image_file="${project_code}.member.${mem_ous_id_str}.${image_name}"
     
+    # create subset project code folder
+    if [[ ! -d "${Deploy_dir}/${Subset_dir}/${project_code}" ]]; then
+        echo_output "mkdir -p \"${Deploy_dir}/${Subset_dir}/${project_code}\""
+        mkdir -p "${Deploy_dir}/${Subset_dir}/${project_code}"
+    fi
+    
+    # extract fits header
+    if [[ ! -f "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}.hdr" ]] || [[ $overwrite -gt 0 ]]; then
+        echo_output "fitshdr \"${image_path}\" > \"${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}.hdr\""
+        fitshdr "${image_path}" > "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}.hdr"
+    fi
+    
     # copy fits file
-    if [[ ! -f "${Deploy_dir}/$Subset_dir/${image_file}" ]] || [[ $overwrite -gt 0 ]]; then
-        echo_output "cp -L \"${image_path}\" \"${Deploy_dir}/$Subset_dir/${image_file}\""
-        cp -L "${image_path}" "${Deploy_dir}/$Subset_dir/${image_file}"
+    if ([[ ! -f "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}" ]] && \
+        [[ ! -f "${Deploy_dir}/${Subset_dir}/${project_code}${image_file}.gz" ]] \
+       ) || [[ $overwrite -gt 0 ]]; then
+        echo_output "cp -L \"${image_path}\" \"${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}\""
+        cp -L "${image_path}" "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}"
+        if [[ $nogzip -eq 0 ]]; then
+            if [[ -f "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}.gz" ]]; then
+                echo_output "gzip \"${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}\""
+                rm "${Deploy_dir}/${Subset_dir}/${project_code}/${image_file}.gz"
+            fi
+            # do not run gzip here, run it later after extracting header information.
+        fi
         # also copy pb and pbcor files
         pb_image_path=$(echo "${image_path}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.pb.fits/g')
         pb_image_file=$(echo "${image_file}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.pb.fits/g')
         if [[ -f "${pb_image_path}" ]]; then
-            echo_output "cp -L \"${pb_image_path}\" \"${Deploy_dir}/$Subset_dir/${pb_image_file}\""
-            cp -L "${pb_image_path}" "${Deploy_dir}/$Subset_dir/${pb_image_file}"
+            echo_output "cp -L \"${pb_image_path}\" \"${Deploy_dir}/${Subset_dir}/${project_code}/${pb_image_file}\""
+            cp -L "${pb_image_path}" "${Deploy_dir}/${Subset_dir}/${project_code}/${pb_image_file}"
+            if [[ $nogzip -eq 0 ]]; then
+                if [[ -f "${Deploy_dir}/${Subset_dir}/${project_code}/${pb_image_file}.gz" ]]; then
+                    echo_output "rm \"${Deploy_dir}/${Subset_dir}/${project_code}/${pb_image_file}.gz\""
+                    rm "${Deploy_dir}/${Subset_dir}/${project_code}/${pb_image_file}.gz"
+                fi
+                echo_output "gzip \"${Deploy_dir}/${Subset_dir}/${project_code}/${pb_image_file}\""
+                gzip "${Deploy_dir}/${Subset_dir}/${project_code}/${pb_image_file}"
+            fi
         fi
         pbcor_image_path=$(echo "${image_path}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.image.pbcor.fits/g')
         pbcor_image_file=$(echo "${image_file}" | perl -p -e 's/.cont.I.image.fits$/.cont.I.image.pbcor.fits/g')
         if [[ -f "${pbcor_image_path}" ]]; then
-            echo_output "cp -L \"${pbcor_image_path}\" \"${Deploy_dir}/$Subset_dir/${pbcor_image_file}\""
-            cp -L "${pbcor_image_path}" "${Deploy_dir}/$Subset_dir/${pbcor_image_file}"
+            echo_output "cp -L \"${pbcor_image_path}\" \"${Deploy_dir}/${Subset_dir}/${project_code}/${pbcor_image_file}\""
+            cp -L "${pbcor_image_path}" "${Deploy_dir}/${Subset_dir}/${project_code}/${pbcor_image_file}"
+            if [[ $nogzip -eq 0 ]]; then
+                if [[ -f "${Deploy_dir}/${Subset_dir}/${project_code}/${pbcor_image_file}.gz" ]]; then
+                    echo_output "rm \"${Deploy_dir}/${Subset_dir}/${project_code}/${pbcor_image_file}.gz\""
+                    rm "${Deploy_dir}/${Subset_dir}/${project_code}/${pbcor_image_file}.gz"
+                fi
+                echo_output "gzip \"${Deploy_dir}/${Subset_dir}/${project_code}/${pbcor_image_file}\""
+                gzip "${Deploy_dir}/${Subset_dir}/${project_code}/${pbcor_image_file}"
+            fi
         fi
     fi
     
     # cd into the directory
     Current_dir=$(pwd -P)
-    echo_output "cd \"${Deploy_dir}/$Subset_dir\""
-    cd "${Deploy_dir}/$Subset_dir"
+    echo_output "cd \"${Deploy_dir}/${Subset_dir}/${project_code}\""
+    cd "${Deploy_dir}/${Subset_dir}/${project_code}"
     # write mem_ous_id into the fits header
-    if [[ $(gethead "${image_file}" MEMBER 2>/dev/null | wc -l) -eq 0 ]]; then
+    if [[ $(get_fits_header_key "${image_file}" MEMBER 2>/dev/null | wc -l) -eq 0 ]]; then
         echo_output "sethead \"${image_file}\" MEMBER=\"${mem_ous_id}\""
         sethead "${image_file}" MEMBER="${mem_ous_id}"
     fi
@@ -279,23 +360,23 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     fi
     rms=$(awk "BEGIN {print (${rms}) * 1e3;}") # converting from Jy/beam to mJy/beam.
     # 
-    frequency=$(gethead "${image_file}" CRVAL3)
+    frequency=$(get_fits_header_key "${image_file}" CRVAL3)
     if [[ "$frequency"x == ""x ]]; then
         echo_error "Error! Could not get CRVAL3 key in the fits header of \"${image_file}\"!"
         exit 255
     fi
     wavelength=$(awk "BEGIN {print 2.99792458e5 / ((${frequency})/1e9);}") # convert frequency Hz to wavelength um
     # 
-    OBSRA=$(gethead "${image_file}" OBSRA)
-    OBSDEC=$(gethead "${image_file}" OBSDEC)
+    OBSRA=$(get_fits_header_key "${image_file}" OBSRA)
+    OBSDEC=$(get_fits_header_key "${image_file}" OBSDEC)
     if [[ "$OBSRA"x == ""x ]] || [[ "$OBSDEC"x == ""x ]]; then
         echo_error "Error! Could not get OBSRA and OBSDEC keys in the fits header of \"${image_file}\"!"
         exit 255
     fi
     # 
-    BMAJ=$(gethead "${image_file}" BMAJ)
-    BMIN=$(gethead "${image_file}" BMIN)
-    BPA=$(gethead "${image_file}" BPA)
+    BMAJ=$(get_fits_header_key "${image_file}" BMAJ)
+    BMIN=$(get_fits_header_key "${image_file}" BMIN)
+    BPA=$(get_fits_header_key "${image_file}" BPA)
     if [[ "$BMAJ"x == ""x ]] || [[ "$BMIN"x == ""x ]] || [[ "$BPA"x == ""x ]]; then
         echo_error "Error! Could not get BMAJ, BMIN and BPA keys in the fits header of \"${image_file}\"!"
         exit 255
@@ -304,10 +385,15 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     beam_minor=$(awk "BEGIN {print (${BMIN}) * 3600.0;}") # convert BMAJ deg to beam_major arcsec
     beam_angle=${BPA} # just in units of deg
     # 
-    OBJECT=$(gethead "${image_file}" OBJECT | perl -p -e 's/ /_/g')
+    OBJECT=$(get_fits_header_key "${image_file}" OBJECT | perl -p -e 's/ /_/g')
     if [[ "$OBJECT"x == ""x ]]; then
         echo_error "Error! Could not get OBJECT key in the fits header of \"${image_file}\"!"
         exit 255
+    fi
+    # 
+    if [[ $nogzip -eq 0 ]]; then
+        echo_output "gzip \"${image_file}\""
+        gzip "${image_file}"
     fi
     # 
     echo_output "cd \"${Current_dir}\""
