@@ -18,6 +18,7 @@ from collections import OrderedDict
 import glob
 import numpy as np
 
+# 20240119: Alma.stage_data is deprecated in astroquery 0.4.7.dev9046, use get_data_info (for url list) or retrieve_data_from_uid (to download files)
 
 
 
@@ -243,19 +244,28 @@ for i in range(len(meta_table)):
     if not os.path.isfile(Output_name+'.txt'):
         
         print('Staging data for Member ObservingUnitSet ID "%s"'%(Member_ous_id))
-        uid_url_table = Alma.stage_data(Member_ous_id)
+        # 20240119: Alma.stage_data is deprecated in astroquery 0.4.7.dev9046, use get_data_info (for url list) or retrieve_data_from_uid (to download files)
+        if hasattr(Alma, 'stage_data'):
+            uid_url_table = Alma.stage_data(Member_ous_id)
+        else:
+            uid_url_table = Alma.get_data_info(Member_ous_id) # expand_tarfiles=True
         print(uid_url_table)
         
         #filelist = Alma.download_and_extract_files(uid_url_table['URL'], regex='.*README$')
         #print(filelist)
         
-        asciitable.write(uid_url_table, Output_name+'.txt', Writer=asciitable.FixedWidthTwoLine)
+        #asciitable.write(uid_url_table, Output_name+'.txt', Writer=asciitable.FixedWidthTwoLine) # 20240119: 'Writer' will be deprecated
+        asciitable.write(uid_url_table, Output_name+'.txt', format='fixed_width_two_line')
         
     else:
         
         uid_url_table = asciitable.read(Output_name+'.txt', format='fixed_width_two_line')
         print(uid_url_table)
         
+    # check URL colname
+    # 20240119: 'access_url' is the column name now
+    uid_url_col = 'URL' if 'URL' in uid_url_table.colnames else 'access_url'
+
     # 
     # prepare shell script to download the data
     # 
@@ -281,7 +291,7 @@ for i in range(len(meta_table)):
                 fp.write("export INPUT_PASSWORD=\"\"\n")
             for i in range(len(uid_url_table)):
                 fp.write("\n")
-                fp.write("alma_archive_download_data_via_http_link.sh \"%s\"\n"%(uid_url_table[i]['URL']))
+                fp.write("alma_archive_download_data_via_http_link.sh \"%s\"\n"%(uid_url_table[i][uid_url_col]))
             fp.write("\n")
             fp.write("date +\"%%Y-%%m-%%d %%H:%%M:%%S %%Z\" > \"%s\"\n"%(Output_name+'.sh.done'))
             fp.write("\n")
