@@ -159,6 +159,8 @@ for Member_ous_id in Member_ous_ids:
     uid_url_table_row_indices = []
     for i in range(len(uid_url_table_nodups)):
         uid_url_address = uid_url_table_nodups[i][uid_url_col]
+        if str(uid_url_address).strip() == '':
+            continue
         # if user has input Only_products, then we only download products which contain .fits
         if Only_products:
             if has_fits_images:
