@@ -117,11 +117,15 @@ for Member_ous_id in Member_ous_ids:
         print('Staging data for Member ObservingUnitSet ID "%s"'%(Member_ous_id))
         uid_url_table = Alma.stage_data(Member_ous_id)
         # 
+        # check URL colname
+        # 20240119: 'access_url' is the column name now
+        uid_url_col = 'URL' if 'URL' in uid_url_table.colnames else 'access_url'
+        # 
         #filelist = Alma.download_and_extract_files(uid_url_table['URL'], regex='.*README$')
         #print(filelist)
         # 
         # remove duplicate URLs
-        uid_url_table_nodups = unique(uid_url_table, keys='URL', keep='first')
+        uid_url_table_nodups = unique(uid_url_table, keys=uid_url_col, keep='first')
         # 
         # save to disk
         asciitable.write(uid_url_table_nodups, '%s.txt'%(Output_name), Writer=asciitable.FixedWidthTwoLine)
@@ -129,6 +133,11 @@ for Member_ous_id in Member_ous_ids:
     # 
     
     print(uid_url_table_nodups)
+    
+    
+    # check URL colname
+    # 20240119: 'access_url' is the column name now
+    uid_url_col = 'URL' if 'URL' in uid_url_table_nodups.colnames else 'access_url'
     
     
     os.system('date +"%%Y-%%m-%%d %%H:%%M:%%S %%Z" > %s'%(Output_log))
@@ -142,14 +151,14 @@ for Member_ous_id in Member_ous_ids:
     
     has_fits_images = False
     for i in range(len(uid_url_table_nodups)):
-        uid_url_address = uid_url_table_nodups[i]['URL']
+        uid_url_address = uid_url_table_nodups[i][uid_url_col]
         if (uid_url_address.find('.fits.') > 0 or uid_url_address.endswith('.fits')):
             has_fits_images = True
             break
     
     uid_url_table_row_indices = []
     for i in range(len(uid_url_table_nodups)):
-        uid_url_address = uid_url_table_nodups[i]['URL']
+        uid_url_address = uid_url_table_nodups[i][uid_url_col]
         # if user has input Only_products, then we only download products which contain .fits
         if Only_products:
             if has_fits_images:
@@ -165,7 +174,7 @@ for Member_ous_id in Member_ous_ids:
             uid_url_table_row_indices.append(i)
     
     for i in uid_url_table_row_indices:
-        uid_url_address = uid_url_table_nodups[i]['URL']
+        uid_url_address = uid_url_table_nodups[i][uid_url_col]
         
         if i == uid_url_table_row_indices[0]:
             if Login_user_name != '':
