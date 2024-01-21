@@ -152,6 +152,7 @@ for Member_ous_id in Member_ous_ids:
     has_fits_images = False
     for i in range(len(uid_url_table_nodups)):
         uid_url_address = uid_url_table_nodups[i][uid_url_col]
+        uid_url_address = str(uid_url_address).strip()
         if (uid_url_address.find('.fits.') > 0 or uid_url_address.endswith('.fits')):
             has_fits_images = True
             break
@@ -159,7 +160,8 @@ for Member_ous_id in Member_ous_ids:
     uid_url_table_row_indices = []
     for i in range(len(uid_url_table_nodups)):
         uid_url_address = uid_url_table_nodups[i][uid_url_col]
-        if str(uid_url_address).strip() == '':
+        uid_url_address = str(uid_url_address).strip()
+        if uid_url_address == '':
             continue
         # if user has input Only_products, then we only download products which contain .fits
         if Only_products:
@@ -177,6 +179,7 @@ for Member_ous_id in Member_ous_ids:
     
     for i in uid_url_table_row_indices:
         uid_url_address = uid_url_table_nodups[i][uid_url_col]
+        uid_url_address = str(uid_url_address).strip()
         
         if i == uid_url_table_row_indices[0]:
             if Login_user_name != '':
