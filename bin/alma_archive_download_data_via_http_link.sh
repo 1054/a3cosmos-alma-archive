@@ -33,7 +33,8 @@ function start_session {
       LOGINCOMMAND=(curl -s -k -o /dev/null -c alma-rh-cookie.txt "-u" "${USERNAME}:${PASSWORD}")
     fi
     # echo "${LOGINCOMMAND[@]}" "https://almascience.nrao.edu/dataPortal/api/login"
-    $("${LOGINCOMMAND[@]}" "https://almascience.nrao.edu/dataPortal/api/login")
+    # $("${LOGINCOMMAND[@]}" "https://almascience.nrao.edu/dataPortal/api/login") # 20240922
+    $("${LOGINCOMMAND[@]}" "https://almascience.nao.ac.jp/dataPortal/downloads/login")
     AUTHENTICATION_STATUS=$?
     if [ $AUTHENTICATION_STATUS -eq 0 ]; then
       echo "            OK: credentials accepted."
@@ -55,6 +56,12 @@ function download {
     DOWNLOADCOMMAND=(wget -c -q -nv --no-check-certificate --auth-no-challenge --load-cookies alma-rh-cookie.txt)
   elif command -v "curl" > /dev/null 2>&1; then
     DOWNLOADCOMMAND=(curl -C - -s -k -O -f -b alma-rh-cookie.txt)
+  fi
+
+  # 20240922
+  if [[ x"$DownloadViaInterface" != x"" ]]; then
+      echo "DownloadViaInterface: $DownloadViaInterface"
+      DOWNLOADCOMMAND=(curl -C - -s -k -O -f -b alma-rh-cookie.txt --interface $DownloadViaInterface)
   fi
 
   echo "starting download of `basename $1`"

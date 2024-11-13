@@ -39,7 +39,8 @@ with open(weblog_html, 'r') as weblog_index_html:
 
     #for soup_th in [t.parent for t in soup.findAll(text='CASA Version') if t.parent.name=='th']
     if casa_version == '':
-        for soup_th in soup.findAll('th', text='CASA Version'):
+        #<20240902># for soup_th in soup.findAll('th', text='CASA Version'): # DeprecationWarning: The 'text' argument to find()-type methods is deprecated. Use 'string' instead.
+        for soup_th in soup.findAll('th', string='CASA Version'):
             #print(soup_th) # soup_th.name # soup_th.text
             for soup_td in soup_th.find_next_siblings():
                 #print(soup_td.text)

@@ -33,7 +33,7 @@ if len(sys.argv) <= 1:
 meta_table_file = ''
 some_option = ''
 Login_user_name = ''
-Use_alma_site = 'eso' # 'nrao'
+Use_alma_site = 'naoj' # 'eso' # 'nrao'
 Use_astroquery_download = False
 output_dir = ''
 overwrite = False
@@ -57,6 +57,8 @@ while i < len(sys.argv):
         Use_alma_site = 'eso'
     elif tmp_arg == '-nrao': 
         Use_alma_site = 'nrao'
+    elif tmp_arg == '-naoj':
+        Use_alma_site = 'naoj'
     elif tmp_arg == '-use-astroquery-download': 
         Use_astroquery_download = True
     elif tmp_arg == '-overwrite': 
@@ -219,6 +221,8 @@ for i in range(len(meta_table)):
             Alma.archive_url = u'https://almascience.eso.org'
         elif Use_alma_site == 'nrao':
             Alma.archive_url = u'https://almascience.nrao.edu'
+        elif Use_alma_site == 'naoj':
+            Alma.archive_url = u'https://almascience.nao.ac.jp'
         else:
             raise Exception('Use_alma_site {} is not recognized!'.format(Use_alma_site))
             #Alma.archive_url = u'https://almascience.nrao.edu'
@@ -353,7 +357,8 @@ for i in range(len(meta_table)):
         #os.system('echo "chmod +x %s; ./%s 2>&1" >> %s'%(Output_name+'.sh', Output_name+'.sh', Output_name+'.log'))
         #os.system('echo "" >> %s'%(Output_name+'.log'))
         #ret = os.system('chmod +x %s; ./%s 2>&1 >> %s'%(Output_name+'.sh', Output_name+'.sh', Output_name+'.log'))
-        proc = subprocess.run('/bin/bash %s'%(Output_name+'.sh') ,shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        #proc = subprocess.run('/bin/bash %s'%(Output_name+'.sh') ,shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) # 20240922
+        proc = subprocess.run('/bin/bash %s'%(Output_name+'.sh') ,shell=True, text=True, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         with open(Output_name+'.log', 'w') as fp:
             fp.write(proc.stdout)
         ret = proc.returncode

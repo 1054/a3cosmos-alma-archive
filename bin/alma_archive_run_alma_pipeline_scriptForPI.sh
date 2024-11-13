@@ -69,67 +69,103 @@ check_and_extract_casa_version_in_readme_file() {
                 if [[ $(cat "$script_dir/README_CASA_VERSION" | wc -l) -eq 0 ]]; then
                     rm "$script_dir/README_CASA_VERSION"
                 fi
+                # re-check if README_CASA_VERSION exists
+                if [[ -f "$script_dir/README_CASA_VERSION" ]] || [[ -L "$script_dir/README_CASA_VERSION" ]]; then
+                    return 0 #source "$casa_setup_script_path" "$script_dir/README_CASA_VERSION"
+                fi
+            fi
+            # if no README file or failed to extract CASA Version from there, then we read "script/*.scriptForCalibration.py"
+            if [[ -d "$script_dir/script" ]] || [[ -L "$script_dir/script" ]]; then
+                list_of_found_files=()
+                script_finding_casa_version=""
+                if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
+                    list_of_found_files=($(find -L "$script_dir/script" -name "*scriptForCalibration.py"))
+                    script_finding_casa_version=alma_archive_find_casa_version_in_scriptForCalibration.py
+                fi
+                if [[ ${#list_of_found_files[@]} -gt 0 ]] && [[ "$script_finding_casa_version"x != ""x ]]; then
+                    # run our python code to extract CASA Version from "qa/*.tgz"
+                    echo "Running ${script_finding_casa_version} \"${list_of_found_files[0]}\" > \"$script_dir/README_CASA_VERSION\""
+                    if [[ $(type ${script_finding_casa_version} 2>/dev/null | wc -l) -ge 1 ]]; then
+                        BACKUP_PYTHONPATH="$PYTHONPATH"
+                        export PYTHONPATH=""
+                        ${script_finding_casa_version} "${list_of_found_files[0]}" > "$script_dir/README_CASA_VERSION"
+                        export PYTHONPATH="$BACKUP_PYTHONPATH"
+                    elif [[ -f $(dirname ${BASH_SOURCE[0]})/${script_finding_casa_version} ]]; then
+                        BACKUP_PYTHONPATH="$PYTHONPATH"
+                        export PYTHONPATH=""
+                        $(dirname ${BASH_SOURCE[0]})/${script_finding_casa_version} "${list_of_found_files[0]}" > "$script_dir/README_CASA_VERSION"
+                        export PYTHONPATH="$BACKUP_PYTHONPATH"
+                    else
+                        echo "Error! Could not find command \"${script_finding_casa_version}\", which should be shipped together with this code!"
+                        return 255 # exit 1
+                    fi
+                    # re-cehck if valid
+                    if [[ $(cat "$script_dir/README_CASA_VERSION" | wc -l) -eq 0 ]]; then
+                        rm "$script_dir/README_CASA_VERSION"
+                    fi
+                    # re-check if README_CASA_VERSION exists
+                    if [[ -f "$script_dir/README_CASA_VERSION" ]] || [[ -L "$script_dir/README_CASA_VERSION" ]]; then
+                        return 0 #source "$casa_setup_script_path" "$script_dir/README_CASA_VERSION"
+                    else
+                        echo "Warning! Failed to run ${script_finding_casa_version} \"${list_of_found_files[0]}\"!"
+                    fi
+                fi
             fi
             # re-check if README_CASA_VERSION exists
             if [[ -f "$script_dir/README_CASA_VERSION" ]] || [[ -L "$script_dir/README_CASA_VERSION" ]]; then
                 return 0 #source "$casa_setup_script_path" "$script_dir/README_CASA_VERSION"
-            else
-                # if no README file or failed to extract CASA Version from there, then we read "qa/*.tgz"
-                if [[ -d "$script_dir/qa" ]] || [[ -L "$script_dir/qa" ]]; then
-                    list_of_found_files=()
-                    script_finding_casa_version=""
-                    if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
-                        list_of_found_files=($(find -L "$script_dir/qa" -name "*.html"))
-                        script_finding_casa_version=alma_archive_find_casa_version_in_qa_html.py
-                    fi
-                    if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
-                        list_of_found_files=($(find -L "$script_dir/qa" -name "*.tgz"))
-                        script_finding_casa_version=alma_archive_find_casa_version_in_qa_weblog.py
-                    fi
-                    if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
-                        list_of_found_files=($(find -L "$script_dir/qa" -name "*.tar.gz"))
-                        script_finding_casa_version=alma_archive_find_casa_version_in_qa_weblog.py
-                    fi
-                    if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
-                        list_of_found_files=($(find -L "$script_dir/script" -name "*scriptForCalibration.py"))
-                        script_finding_casa_version=alma_archive_find_casa_version_in_scriptForCalibration.py
-                    fi
-                    if [[ ${#list_of_found_files[@]} -gt 0 ]] && [[ "$script_finding_casa_version"x != ""x ]]; then
-                        # run our python code to extract CASA Version from "qa/*.tgz"
-                        echo "Running ${script_finding_casa_version} \"${list_of_found_files[0]}\" > \"$script_dir/README_CASA_VERSION\""
-                        if [[ $(type ${script_finding_casa_version} 2>/dev/null | wc -l) -ge 1 ]]; then
-                            BACKUP_PYTHONPATH="$PYTHONPATH"
-                            export PYTHONPATH=""
-                            ${script_finding_casa_version} "${list_of_found_files[0]}" > "$script_dir/README_CASA_VERSION"
-                            export PYTHONPATH="$BACKUP_PYTHONPATH"
-                        elif [[ -f $(dirname ${BASH_SOURCE[0]})/${script_finding_casa_version} ]]; then
-                            BACKUP_PYTHONPATH="$PYTHONPATH"
-                            export PYTHONPATH=""
-                            $(dirname ${BASH_SOURCE[0]})/${script_finding_casa_version} "${list_of_found_files[0]}" > "$script_dir/README_CASA_VERSION"
-                            export PYTHONPATH="$BACKUP_PYTHONPATH"
-                        else
-                            echo "Error! Could not find command \"${script_finding_casa_version}\", which should be shipped together with this code!"
-                            return 255 # exit 1
-                        fi
-                        # re-cehck if valid
-                        if [[ $(cat "$script_dir/README_CASA_VERSION" | wc -l) -eq 0 ]]; then
-                            rm "$script_dir/README_CASA_VERSION"
-                        fi
-                        # re-check if README_CASA_VERSION exists
-                        if [[ -f "$script_dir/README_CASA_VERSION" ]] || [[ -L "$script_dir/README_CASA_VERSION" ]]; then
-                            return 0 #source "$casa_setup_script_path" "$script_dir/README_CASA_VERSION"
-                        else
-                            echo "Error! Failed to run ${script_finding_casa_version} \"${list_of_found_files[0]}\"!"
-                            return 255 # exit 1
-                        fi
+            fi
+            # if no README file or failed to extract CASA Version from there, then we read "qa/*.tgz"
+            if [[ -d "$script_dir/qa" ]] || [[ -L "$script_dir/qa" ]]; then
+                list_of_found_files=()
+                script_finding_casa_version=""
+                if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
+                    list_of_found_files=($(find -L "$script_dir/qa" -name "*.html"))
+                    script_finding_casa_version=alma_archive_find_casa_version_in_qa_html.py
+                fi
+                if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
+                    list_of_found_files=($(find -L "$script_dir/qa" -name "*.tgz"))
+                    script_finding_casa_version=alma_archive_find_casa_version_in_qa_weblog.py
+                fi
+                if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
+                    list_of_found_files=($(find -L "$script_dir/qa" -name "*.tar.gz"))
+                    script_finding_casa_version=alma_archive_find_casa_version_in_qa_weblog.py
+                fi
+                if [[ ${#list_of_found_files[@]} -gt 0 ]] && [[ "$script_finding_casa_version"x != ""x ]]; then
+                    # run our python code to extract CASA Version from "qa/*.tgz"
+                    echo "Running ${script_finding_casa_version} \"${list_of_found_files[0]}\" > \"$script_dir/README_CASA_VERSION\""
+                    if [[ $(type ${script_finding_casa_version} 2>/dev/null | wc -l) -ge 1 ]]; then
+                        BACKUP_PYTHONPATH="$PYTHONPATH"
+                        export PYTHONPATH=""
+                        ${script_finding_casa_version} "${list_of_found_files[0]}" > "$script_dir/README_CASA_VERSION"
+                        export PYTHONPATH="$BACKUP_PYTHONPATH"
+                    elif [[ -f $(dirname ${BASH_SOURCE[0]})/${script_finding_casa_version} ]]; then
+                        BACKUP_PYTHONPATH="$PYTHONPATH"
+                        export PYTHONPATH=""
+                        $(dirname ${BASH_SOURCE[0]})/${script_finding_casa_version} "${list_of_found_files[0]}" > "$script_dir/README_CASA_VERSION"
+                        export PYTHONPATH="$BACKUP_PYTHONPATH"
                     else
-                        echo "Error! Could not find \"$script_dir/qa/{*.tgz,*.html}\"! Could not determine CASA Version!"
+                        echo "Error! Could not find command \"${script_finding_casa_version}\", which should be shipped together with this code!"
+                        return 255 # exit 1
+                    fi
+                    # re-cehck if valid
+                    if [[ $(cat "$script_dir/README_CASA_VERSION" | wc -l) -eq 0 ]]; then
+                        rm "$script_dir/README_CASA_VERSION"
+                    fi
+                    # re-check if README_CASA_VERSION exists
+                    if [[ -f "$script_dir/README_CASA_VERSION" ]] || [[ -L "$script_dir/README_CASA_VERSION" ]]; then
+                        return 0 #source "$casa_setup_script_path" "$script_dir/README_CASA_VERSION"
+                    else
+                        echo "Error! Failed to run ${script_finding_casa_version} \"${list_of_found_files[0]}\"!"
                         return 255 # exit 1
                     fi
                 else
-                    echo "Error! Could not find either \"$script_dir/README_CASA_VERSION\" or \"$script_dir/README\" files or \"$script_dir/qa/\" folder! Could not determine CASA Version!"
+                    echo "Error! Could not find \"$script_dir/qa/{*.tgz,*.html}\"! Could not determine CASA Version!"
                     return 255 # exit 1
                 fi
+            else
+                echo "Error! Could not find either \"$script_dir/README_CASA_VERSION\" or \"$script_dir/README\" files or \"$script_dir/qa/\" folder! Could not determine CASA Version!"
+                return 255 # exit 1
             fi
         fi
     else

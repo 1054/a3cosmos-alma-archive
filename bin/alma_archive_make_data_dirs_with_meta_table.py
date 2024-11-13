@@ -197,7 +197,7 @@ if 'Member_ous_id' in meta_table.colnames:
 
 Source_name = None
 if 'Source_name' in meta_table.colnames:
-    Source_name = meta_table['Source_name'].data.astype(np.str)
+    Source_name = meta_table['Source_name'].data.astype(str)
 
 Dataset_dirname = None
 if 'Dataset_dirname' in meta_table.colnames:
