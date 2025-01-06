@@ -1,7 +1,6 @@
 #!/bin/bash
 # 
 
-
 # read input Project_code
 
 if [[ $# -lt 2 ]]; then
@@ -106,14 +105,16 @@ fi
 # check wcstools gethead sethead and wcslib fitshdr
 for check_command in gethead sethead fitshdr; do
     if [[ $(type ${check_command} 2>/dev/null | wc -l) -eq 0 ]]; then
-        # if not executable in the command line, try to find it in "$HOME/Cloud/Github/Crab.Toolkit.PdBI"
-        if [[ -d "$HOME/Cloud/Github/Crab.Toolkit.PdBI" ]] && [[ -f "$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash" ]]; then
-            source "$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash"
-        else
-            # if not executable in the command line, nor in "$HOME/Cloud/Github/Crab.Toolkit.PdBI", report error.
-            echo_error "Error! \"${check_command}\" is not executable in the command line! Please install WCSTOOLS, WCSLIB, or check your \$PATH!"
-            exit 1
-        fi
+        # # if not executable in the command line, try to find it in "$HOME/Cloud/Github/Crab.Toolkit.PdBI"
+        # if [[ -d "$HOME/Cloud/Github/Crab.Toolkit.PdBI" ]] && [[ -f "$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash" ]]; then
+        #     source "$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash"
+        # else
+        #     # if not executable in the command line, nor in "$HOME/Cloud/Github/Crab.Toolkit.PdBI", report error.
+        #     echo_error "Error! \"${check_command}\" is not executable in the command line! Please install WCSTOOLS, WCSLIB, or check your \$PATH!"
+        #     exit 1
+        # fi
+        echo_error "Error! \"${check_command}\" is not executable in the command line! Please install WCSTOOLS (wcstools), WCSLIB (wcslib-tools), or check your \$PATH!"
+        exit 1
     fi
 done
 

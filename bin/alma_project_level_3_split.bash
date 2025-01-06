@@ -313,7 +313,7 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
     else
         echo_output "Warning! Found split_*_width${width_str}_SP.uvt files! Will not re-run casa-ms-split!"
     fi
-    if [[ $(find . -maxdepth 1 -type f -name "split_*_width${width_str}_SP.uvt" | wc -l) -eq 0 ]]; then
+    if [[ $(find . -maxdepth 1 -type f -name "split_*_width*_SP.uvt" | wc -l) -eq 0 ]]; then
         echo_error "Error! casa-ms-split -vis calibrated.ms -width ${width} -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} FAILED! Please check the log in \"$(pwd)/casa-ms-split.log\"."
     fi
     
