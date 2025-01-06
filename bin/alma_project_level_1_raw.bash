@@ -21,9 +21,32 @@ Project_code="$1"
 
 shift
 
-if [[ $# -gt 0 ]]; then
-    echo "$@" >> "meta_user_info.txt"
-fi
+download_only=0
+query_kwargs=()
+while [[ $# -gt 0 ]]; do
+    if [[ "$1" == "--user" ]] && [[ $# -ge 2 ]]; then
+        echo "$1 $2"
+        echo "$1 $2" >> "meta_user_info.txt"
+        query_kwargs+=($1)
+        query_kwargs+=($2)
+        shift
+    fi
+    if [[ "$1" == "--server" ]] && [[ $# -ge 2 ]]; then
+        echo "$1 $2"
+        query_kwargs+=($1)
+        query_kwargs+=($2)
+        shift
+    fi
+    if [[ "$1" == "--download-only" ]]; then
+        echo "download_only=1"
+        download_only=1
+    fi
+    shift
+done
+
+#if [[ $# -gt 0 ]]; then
+#    echo "$@" >> "meta_user_info.txt"
+#fi
 
 # define logging files and functions
 error_log_file="$(pwd)/.$(basename ${BASH_SOURCE[0]}).err"
@@ -54,8 +77,8 @@ echo_output "Began processing ALMA project ${Project_code} with $(basename ${BAS
 # query ALMA archive and prepare meta data table
 if [[ ! -f "alma_archive_query_by_project_code_${Project_code}.txt" ]]; then
     echo_output "Querying ALMA archive by running following command: "
-    echo_output "alma_archive_query_by_project_code.py $Project_code $@"
-    $(dirname ${BASH_SOURCE[0]})/alma_archive_query_by_project_code.py "$Project_code" $@
+    echo_output "alma_archive_query_by_project_code.py $Project_code ${query_kwargs[@]}"
+    $(dirname ${BASH_SOURCE[0]})/alma_archive_query_by_project_code.py "$Project_code" ${query_kwargs[@]}
 fi
 
 if [[ ! -f "alma_archive_query_by_project_code_${Project_code}.txt" ]]; then
@@ -83,6 +106,13 @@ fi
 if [[ $(find "Level_1_Raw/${Project_code}.cache" -maxdepth 1 -type f -name "*.tar" | wc -l) -eq 0 ]]; then
     echo "Error! Failed to run alma_archive_download_data_according_to_meta_table.py"
     exit 255
+fi
+
+
+# check download only
+if [[ $download_only -gt 0 ]]; then
+    echo_output "Download only, Exit."
+    exit
 fi
 
 
