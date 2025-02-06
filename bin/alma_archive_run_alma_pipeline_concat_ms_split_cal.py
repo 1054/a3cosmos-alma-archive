@@ -23,7 +23,8 @@ def alma_archive_run_alma_pipeline_concat_ms_split_cal(locals_dict):
         for uid_dir in os.listdir('.'):
             if uid_dir.endswith(os.sep):
                 uid_dir = uid_dir[0:len(uid_dir)-1]
-            if uid_dir.startswith('uid___') and uid_dir.endswith('.ms'):
+            if uid_dir.startswith('uid___') and uid_dir.endswith('.ms') and (not uid_dir.endswith('_targets.ms')) and (not uid_dir.endswith('_targets_line.ms')): 
+                # 20250206 excluding _targets.ms and _targets_line.ms
                 uid_dirs.append(uid_dir)
         
         if len(uid_dirs) == 0:

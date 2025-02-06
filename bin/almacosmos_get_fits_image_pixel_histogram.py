@@ -271,7 +271,7 @@ while BinLoop and BinNumb <= (len(BinVar)/17.5):
         # 
         pl.plot(BinCents[FitRange], FitGauss, color=hex2color('#FF0000'), linewidth=3, linestyle='solid') # marker='o', markerfacecolor='blue', markersize=12)
         #pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], 'sigma = %.10g'%(FitParam['sigma']), color=hex2color('#FF0000'), fontsize=18)
-        pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], '$\sigma$ = %.4f mJy/beam'%(FitParam['sigma']*1e3), color=hex2color('#FF0000'), fontsize=24)
+        pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], r'$\sigma$ = %.4f mJy/beam'%(FitParam['sigma']*1e3), color=hex2color('#FF0000'), fontsize=24)
         # output to txt file
         with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
             print(   "Gaussian_A     = %.10g"  %(FitParam['A'])     )
@@ -318,7 +318,7 @@ if type(FitParam) is dict and len(FitRange)>0:
     if FitParam['sigma'] != np.nan and FitParam['sigma'] > 0.0:
         pl.semilogy(BinCents[FitRange], FitGauss, color=hex2color('#FF0000'), linewidth=3, linestyle='solid') # -- You simply need to use semilogy instead of plot -- http://stackoverflow.com/questions/773814/plot-logarithmic-axes-with-matplotlib-in-python
         #pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], 'sigma = %.10g'%(FitParam['sigma']), color=hex2color('#FF0000'), fontsize=18)
-        pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], '$\sigma$ = %.4f mJy/beam'%(FitParam['sigma']*1e3), color=hex2color('#FF0000'), fontsize=24)
+        pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], r'$\sigma$ = %.4f mJy/beam'%(FitParam['sigma']*1e3), color=hex2color('#FF0000'), fontsize=24)
 
 locs,labels = pl.xticks()
 pl.xticks(locs, map(lambda x: '%.2f' % x, locs*1e3)) # show x axis in unit of mJy/beam instead of Jy/beam

@@ -171,7 +171,7 @@ for i in range(len(meta_table)):
                 if re.match('.*error.*', line.strip(), re.IGNORECASE):
                     has_error_in_previous_run = True
                     break
-                elif re.match('.*successfully downloaded.*', line.strip(), re.IGNORECASE):
+                elif re.match('.*(successfully|succesfully) downloaded.*', line.strip(), re.IGNORECASE):
                     has_successfully_downloaded = True
                     #continue, do not break
     if has_error_in_previous_run or (not has_successfully_downloaded):

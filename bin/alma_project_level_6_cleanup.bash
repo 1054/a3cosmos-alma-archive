@@ -21,7 +21,9 @@ echo "rm -rf Level_1_Raw/*.cache/*.{tar,tar.gz}"
 echo "rm -rf Level_1_Raw/*.tar"
 echo "rm -rf Level_2_Calib/DataSet_*/calibration/uid*"
 echo "rm -rf Level_2_Calib/DataSet_*/raw/uid*"
-echo "rm -rf Level_2_Calib/DataSet_*/product/*"
+#echo "rm -rf Level_2_Calib/DataSet_*/product/*"
+# 
+# if calibrated.ms is a link, copy the original file to replace the link.
 list_of_calibrated_ms=($(ls -1d Level_2_Calib/DataSet_*/calibrated/calibrated.ms))
 for (( i = 0; i < ${#list_of_calibrated_ms[@]}; i++ )); do
     if [[ -L "${list_of_calibrated_ms[i]}" ]]; then
@@ -45,4 +47,33 @@ echo "rm -rf Level_4_Data_Images/*/DataSet_*/processing/run_tclean_*/split_*"
 echo "rm -rf Level_4_Data_Images/*/DataSet_*/processing"
 #echo "rm -rf Level_2_Calib/DataSet_*/external/ari_l/*"
 
+if [[ "$@" == *"-exec"* ]]; then
+    read -p "Do you really want to delete these files? [y/n] " delete
+    if [[ $(echo "$delete" | tr '[:upper:]' '[:lower:]') == "y"* ]]; then
+        echo "rm -rf Level_1_Raw/*.cache/*.{tar,tar.gz}"
+        rm -rf Level_1_Raw/*.cache/*.{tar,tar.gz}
+        echo "rm -rf Level_1_Raw/*.tar"
+        rm -rf Level_1_Raw/*.tar
+        echo "rm -rf Level_2_Calib/DataSet_*/calibration/uid*"
+        rm -rf Level_2_Calib/DataSet_*/calibration/uid*
+        echo "rm -rf Level_2_Calib/DataSet_*/raw/uid*"
+        rm -rf Level_2_Calib/DataSet_*/raw/uid*
+        #echo "rm -rf Level_2_Calib/DataSet_*/product/*"
+        #rm -rf Level_2_Calib/DataSet_*/product/*
+        echo "rm -rf Level_2_Calib/DataSet_*/calibrated/{raw,prod,uid}*"
+        rm -rf Level_2_Calib/DataSet_*/calibrated/{raw,prod,uid}*
+        echo "rm -rf Level_2_Calib/DataSet_*/calibrated/working/{uid,byspw}*"
+        rm -rf Level_2_Calib/DataSet_*/calibrated/working/{uid,byspw}*
+        echo "rm -rf Level_2_Calib/DataSet_*/calibrated/uid*"
+        rm -rf Level_2_Calib/DataSet_*/calibrated/uid*
+        echo "rm -rf Level_3_Split/DataSet_*/split_*.{ms,uvfits,uvt}"
+        rm -rf Level_3_Split/DataSet_*/split_*.{ms,uvfits,uvt}
+        echo "rm -rf Level_3_Split/DataSet_*/*backup*" 
+        rm -rf Level_3_Split/DataSet_*/*backup*
+        #echo "rm -rf Level_4_Data_Images/*/DataSet_*/processing/run_tclean_*/split_*"
+        #rm -rf Level_4_Data_Images/*/DataSet_*/processing/run_tclean_*/split_*
+        echo "rm -rf Level_4_Data_Images/*/DataSet_*/processing"
+        rm -rf Level_4_Data_Images/*/DataSet_*/processing
+    fi
+fi
 
