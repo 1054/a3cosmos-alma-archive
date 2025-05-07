@@ -48,8 +48,9 @@ echo "rm -rf Level_4_Data_Images/*/DataSet_*/processing"
 #echo "rm -rf Level_2_Calib/DataSet_*/external/ari_l/*"
 
 if [[ "$@" == *"-exec"* ]]; then
-    read -p "Do you really want to delete these files? [y/n] " delete
-    if [[ $(echo "$delete" | tr '[:upper:]' '[:lower:]') == "y"* ]]; then
+    #read -p "Do you really want to delete these files? [y/n] " delete
+    delete=yes
+    if [[ $(echo "$delete" | tr '[:upper:]' '[:lower:]') == "y"* ]] && [[ ! -f done_final_clean_up ]]; then
         echo "rm -rf Level_1_Raw/*.cache/*.{tar,tar.gz}"
         rm -rf Level_1_Raw/*.cache/*.{tar,tar.gz}
         echo "rm -rf Level_1_Raw/*.tar"
@@ -74,6 +75,8 @@ if [[ "$@" == *"-exec"* ]]; then
         #rm -rf Level_4_Data_Images/*/DataSet_*/processing/run_tclean_*/split_*
         echo "rm -rf Level_4_Data_Images/*/DataSet_*/processing"
         rm -rf Level_4_Data_Images/*/DataSet_*/processing
+        #
+        touch done_final_clean_up
     fi
 fi
 

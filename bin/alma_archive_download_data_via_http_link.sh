@@ -132,6 +132,14 @@ if [[ $AUTHENTICATION_STATUS -eq 0 ]]; then
 	#echo "your downloads will start shortly...."
 	#echo ${LIST} | tr \  \\n | xargs -P1 -n1 -I '{}' bash -c 'download {};'
   for (( i=1; i<=$#; i++ )); do
+
+      # 20250507 skip external products using a system variable SKIP_EXTERNAL
+      if [[ "${!i}" == *"_external_"* ]]; then
+          if [[ x"$SKIP_EXTERNAL"x == x"1"x ]] || [[ x"$SKIP_EXTERNAL"x == x"TRUE"x ]]; then
+              continue
+          fi
+      fi
+
       if [[ "${!i}" == "http"* ]]; then
           
           USERNAME_FROM_URL=$(echo "${!i}" | perl -p -e "s%http.*/requests/([a-zA-Z0-9_]+)/.*%\1%g")

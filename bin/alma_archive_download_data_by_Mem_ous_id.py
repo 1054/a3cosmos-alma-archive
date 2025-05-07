@@ -21,6 +21,7 @@ Login_user_name = ''
 Use_alma_site = 'nrao'
 Output_folder = ''
 Only_products = False
+Skip_external = False
 Overwrite_query = False
 Overwrite_download = False
 i = 1
@@ -35,6 +36,8 @@ while i < len(sys.argv):
         Use_alma_site = 'eso'
     elif arg_str.startswith("-only-products"):
         Only_products = True
+    elif arg_str.startswith("-skip-external"):
+        Skip_external = True
     elif arg_str.startswith("-overwrite-query"):
         Overwrite_query = True
     elif arg_str.startswith("-overwrite-download"):
@@ -52,7 +55,7 @@ while i < len(sys.argv):
     i = i+1
 
 if len(Member_ous_ids) == 0:
-    print('Usage: alma_archive_download_data_by_Mem_ous_id.py "uid://A001/X148/X119" [--user dzliu --eso] [--out OUTPUT_FOLDER] [--only-products]')
+    print('Usage: alma_archive_download_data_by_Mem_ous_id.py "uid://A001/X148/X119" [--user dzliu --eso] [--out OUTPUT_FOLDER] [--only-products] [--skip-external]')
     sys.exit()
 
 
@@ -176,27 +179,28 @@ for Member_ous_id in Member_ous_ids:
         else:
             # if no -only-product is given, we download all data.
             uid_url_table_row_indices.append(i)
-    
+   
+    if Login_user_name != '':
+        os.system('echo "export ALMA_USERNAME=\\\"%s\\\"" >> %s'%(Login_user_name, Output_sh))
+    else:
+        os.system('echo "export ALMA_USERNAME=\\\"\\\"" >> %s'%(Output_sh))
+
+    if Skip_external:
+        os.system('echo "export SKIP_EXTERNAL=1" >> %s'%(Output_sh))
+
     for i in uid_url_table_row_indices:
         uid_url_address = uid_url_table_nodups[i][uid_url_col]
         uid_url_address = str(uid_url_address).strip()
-        
-        if i == uid_url_table_row_indices[0]:
-            if Login_user_name != '':
-                os.system('echo "export ALMA_USERNAME=\\\"%s\\\"" >> %s'%(Login_user_name, Output_sh))
-            else:
-                os.system('echo "export ALMA_USERNAME=\\\"\\\"" >> %s'%(Output_sh))
         
         os.system('echo "" >> %s'%(Output_sh))
         os.system('echo "alma_archive_download_data_via_http_link.sh \"%s\"" >> %s'%(uid_url_address, Output_sh))
         #os.system('echo "wget --no-check-certificate --auth-no-challenge --server-response --user dzliu --password  -c \"%s\"" >> %s.sh'%(uid_url_table[i]['URL'],Output_name))
         #os.system('echo "wget -c \"%s\"" >> %s.sh'%(uid_url_address,Output_name))
         
-        if i == uid_url_table_row_indices[-1]:
-            os.system('echo "" >> %s'%(Output_sh))
-            os.system('echo \"date +\\\"%%Y-%%m-%%d %%H:%%M:%%S %%Z\\\" > %s\" >> %s'%(Output_done, Output_sh))
-            os.system('echo "" >> %s'%(Output_sh))
-            os.system('chmod +x %s'%(Output_sh))
+    os.system('echo "" >> %s'%(Output_sh))
+    os.system('echo \"date +\\\"%%Y-%%m-%%d %%H:%%M:%%S %%Z\\\" > %s\" >> %s'%(Output_done, Output_sh))
+    os.system('echo "" >> %s'%(Output_sh))
+    os.system('chmod +x %s'%(Output_sh))
     
     print('Now prepared a shell script "%s" to download the Tar files!'%(Output_sh))
     print('Running "./%s >> %s" in terminal!'%(Output_sh, Output_log))

@@ -209,31 +209,25 @@ check_and_concat_calibrated_ms() {
                     return 0 # continue # OK, no need to re-make calibrated data
                 else
                     # if "calibrated" dir exists, but no "calibrated*.ms", then check if "uid___*.ms.split.cal" dirs exist or not
-                    list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type d -name "uid___*.ms.split.cal" | grep -v "_targets.ms" | grep -v "_targets_line.ms"))
-                    # 20250206 exclude targets.ms targets_line.ms
-                    if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 0 ]]; then                                                                     
-                        list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type d -name "uid___*.ms" | grep -v "_targets.ms" | grep -v "_targets_line.ms"))
-                    fi                                                                                                                        
-                    # 20250206 exclude targets.ms targets_line.ms - type l
-                    if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 0 ]]; then                                                                     
-                        list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type l -name "uid___*.ms" | grep -v "_targets.ms" | grep -v "_targets_line.ms"))
+                    if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 0 ]]; then
+                        list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type d -name "uid___*.ms.split.cal"))
                     fi
-                    # if "calibrated" dir exists, but no "calibrated*.ms", then check if "uid___*.ms.split.cal" dirs exist or not
-                    #if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 0 ]]; then
-                    #    list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type d -name "uid___*.ms.split.cal"))
-                    #fi
                     # 20180612 for CASA 5, ALMA Cycle 5 and later, file names are changed
-                    #if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 0 ]]; then
-                    #    list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type d -name "uid___*.ms" | grep -v "_targets_line.ms"))
-                    #fi
+                    if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 0 ]]; then
+                        list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type d -name "uid___*.ms"))
+                    fi
                     # 20180612 for CASA 5, ALMA Cycle 5 and later, file names are changed - type l
-                    #if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 0 ]]; then
-                    #    list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type l -name "uid___*.ms" | grep -v "_targets_line.ms"))
-                    #fi
+                    if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 0 ]]; then
+                        list_of_ms_split_cal_dirs=($(find "$script_dir/calibrated/" -mindepth 1 -maxdepth 1 -type l -name "uid___*.ms"))
+                    fi
+                    # if only one uid, make a copy (20250206 make a link -> make a copy)
                     if [[ ${#list_of_ms_split_cal_dirs[@]} -eq 1 ]]; then
-                        echo "Found \"$script_dir/calibrated\" and one \"uid___*.ms.split.cal\" data therein but no \"calibrated_final.ms\" nor \"calibrated.ms\"! Will make a link."
-                        echo bash -c "cd \"$script_dir/calibrated\"; ln -fsT \"$(basename ${list_of_ms_split_cal_dirs[0]})\" \"calibrated.ms\""
-                        bash -c "cd \"$script_dir/calibrated\"; ln -fsT \"$(basename ${list_of_ms_split_cal_dirs[0]})\" \"calibrated.ms\""
+                        #echo "Found \"$script_dir/calibrated\" and one \"uid___*.ms.split.cal\" data therein but no \"calibrated_final.ms\" nor \"calibrated.ms\"! Will make a link."
+                        #echo bash -c "cd \"$script_dir/calibrated\"; ln -fsT \"$(basename ${list_of_ms_split_cal_dirs[0]})\" \"calibrated.ms\""
+                        #bash -c "cd \"$script_dir/calibrated\"; ln -fsT \"$(basename ${list_of_ms_split_cal_dirs[0]})\" \"calibrated.ms\""
+                        echo "Found \"$script_dir/calibrated\" and one \"uid___*.ms.split.cal\" data therein but no \"calibrated_final.ms\" nor \"calibrated.ms\"! Will make a copy."
+                        echo bash -c "cd \"$script_dir/calibrated\"; cp -rLp \"$(basename ${list_of_ms_split_cal_dirs[0]})\" \"calibrated.ms\""
+                        bash -c "cd \"$script_dir/calibrated\"; cp -rLp \"$(basename ${list_of_ms_split_cal_dirs[0]})\" \"calibrated.ms\""
                         return 0 # continue # OK, no need to re-make calibrated data
                     elif [[ ${#list_of_ms_split_cal_dirs[@]} -gt 1 ]]; then
                         echo "Found \"$script_dir/calibrated\" and \"uid___*.ms.split.cal\" therein but no \"calibrated_final.ms\" nor \"calibrated.ms\"! Will try to concatenate them."

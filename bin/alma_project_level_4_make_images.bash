@@ -32,7 +32,7 @@ width="*" # "25km/s"
 maximsize=2000
 overwrite=0
 keepfiles=0
-skipcalibrators=1
+skipcalibrators=0
 allowemptydataset=0
 select_dataset=()
 while [[ $iarg -le $# ]]; do
