@@ -95,8 +95,8 @@ fi
 # now downloading raw data
 if [[ ! -f "Level_1_Raw/${Project_code}.cache.done" ]]; then
     echo_output "Now downloading raw data (it can take several days!)"
-    echo alma_archive_download_data_according_to_meta_table.py "meta_data_table.txt" -out "Level_1_Raw/${Project_code}.cache"
-    alma_archive_download_data_according_to_meta_table.py "meta_data_table.txt" -out "Level_1_Raw/${Project_code}.cache"
+    echo alma_archive_download_data_according_to_meta_table.py "meta_data_table.txt" -out "Level_1_Raw/${Project_code}.cache ${query_kwargs[@]}"
+    alma_archive_download_data_according_to_meta_table.py "meta_data_table.txt" -out "Level_1_Raw/${Project_code}.cache" ${query_kwargs[@]}
     if [[ $? -ne 0 ]]; then echo "Error! Failed to run alma_archive_download_data_according_to_meta_table.py"; exit 255; fi
     date +"%Y-%m-%d %Hh%Mm%Ss %Z" > "Level_1_Raw/${Project_code}.cache.done"
 else

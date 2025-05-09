@@ -53,6 +53,16 @@ while i < len(sys.argv):
         i = i+1
         if i < len(sys.argv):
             output_dir = sys.argv[i]
+    elif tmp_arg == '-server':
+        i = i+1               
+        if i < len(sys.argv):
+            if sys.argv[i].upper() in ['EA', 'NAOJ']:
+                Use_alma_site = 'naoj'
+            elif sys.argv[i].upper() in ['EU', 'ESO']:
+                Use_alma_site = 'eso'
+            elif sys.argv[i].upper() in ['NA', 'NRAO']:
+                Use_alma_site = 'nrao'
+            print('Use_alma_site: {}'.format(Use_alma_site))
     elif tmp_arg == '-eso': 
         Use_alma_site = 'eso'
     elif tmp_arg == '-nrao': 
