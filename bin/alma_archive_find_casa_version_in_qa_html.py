@@ -8,7 +8,7 @@ import os, sys, re
 from glob import glob
 #import tarfile
 try:
-    from packaging.version import LooseVersion
+    from packaging.version import Version as LooseVersion
 except:
     from distutils.version import LooseVersion
 import bs4
