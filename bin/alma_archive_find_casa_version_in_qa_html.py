@@ -7,6 +7,11 @@ from __future__ import print_function
 import os, sys, re
 from glob import glob
 #import tarfile
+try:
+    from packaging.version import LooseVersion
+except:
+    from distutils.version import LooseVersion
+import bs4
 from bs4 import BeautifulSoup
 
 
@@ -37,7 +42,7 @@ with open(weblog_html, 'r') as weblog_index_html:
 
     soup = BeautifulSoup(weblog_index_html_content, 'html.parser')
 
-    if not hasattr(soup, 'findAll') and hasattr(soup, 'find_all'):
+    if LooseVersion(bs4.__version__) >= LooseVersion('4.0.0'):
         soup.findAll = soup.find_all
 
     #for soup_th in [t.parent for t in soup.findAll(text='CASA Version') if t.parent.name=='th']
