@@ -37,6 +37,9 @@ with open(weblog_html, 'r') as weblog_index_html:
 
     soup = BeautifulSoup(weblog_index_html_content, 'html.parser')
 
+    if not hasattr(soup, 'findAll') and hasattr(soup, 'find_all'):
+        soup.findAll = soup.find_all
+
     #for soup_th in [t.parent for t in soup.findAll(text='CASA Version') if t.parent.name=='th']
     if casa_version == '':
         #<20240902># for soup_th in soup.findAll('th', text='CASA Version'): # DeprecationWarning: The 'text' argument to find()-type methods is deprecated. Use 'string' instead.
