@@ -140,6 +140,14 @@ if [[ $AUTHENTICATION_STATUS -eq 0 ]]; then
           fi
       fi
 
+      # 20250612 skip QA2 products using a system variable SKIP_PRODUCTS
+      if [[ "${!i}" == *"_001_of_001.tar" ]]; then                  
+          if [[ x"$SKIP_PRODUCTS"x == x"1"x ]] || [[ x"$SKIP_PRODUCTS"x == x"TRUE"x ]]; then
+              continue
+          fi
+      fi
+
+      # process http* URLs
       if [[ "${!i}" == "http"* ]]; then
           
           USERNAME_FROM_URL=$(echo "${!i}" | perl -p -e "s%http.*/requests/([a-zA-Z0-9_]+)/.*%\1%g")
@@ -166,7 +174,7 @@ if [[ $AUTHENTICATION_STATUS -eq 0 ]]; then
           
           download "${!i}"
       fi
-  done
+   done
 fi
 end_session
 echo "Done."

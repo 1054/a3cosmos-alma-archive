@@ -22,6 +22,7 @@ Use_alma_site = 'nrao'
 Output_folder = ''
 Only_products = False
 Skip_external = False
+Skip_products = False
 Overwrite_query = False
 Overwrite_download = False
 i = 1
@@ -38,6 +39,8 @@ while i < len(sys.argv):
         Only_products = True
     elif arg_str.startswith("-skip-external"):
         Skip_external = True
+    elif arg_str.startswith("-skip-products"):
+        Skip_products = True
     elif arg_str.startswith("-overwrite-query"):
         Overwrite_query = True
     elif arg_str.startswith("-overwrite-download"):
@@ -187,7 +190,10 @@ for Member_ous_id in Member_ous_ids:
 
     if Skip_external:
         os.system('echo "export SKIP_EXTERNAL=1" >> %s'%(Output_sh))
-
+    
+    if Skip_products and not Only_products:
+        os.system('echo "export SKIP_PRODUCTS=1" >> %s'%(Output_sh))
+    
     for i in uid_url_table_row_indices:
         uid_url_address = uid_url_table_nodups[i][uid_url_col]
         uid_url_address = str(uid_url_address).strip()
