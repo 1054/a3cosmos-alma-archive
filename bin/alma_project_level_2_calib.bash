@@ -21,17 +21,24 @@ Project_code="$1"
 # read user input
 iarg=1
 select_dataset=()
+with_gui=0
 while [[ $iarg -le $# ]]; do
-    istr=$(echo ${!iarg} | tr '[:upper:]' '[:lower:]')
+    istr=$(echo ${!iarg} | tr '[:upper:]' '[:lower:]' | sed -e 's/--/-/g')
     if [[ "$istr" == "-dataset" ]] && [[ $((iarg+1)) -le $# ]]; then
         iarg=$((iarg+1)); select_dataset+=("${!iarg}"); echo "Selecting dataset \"${!iarg}\""
+    elif [[ "$istr" == "-with-gui" ]]; then
+        with_gui=1; echo "Setting with gui"
     fi
     iarg=$((iarg+1))
 done
 
+# get script_dir
+script_dir=$(dirname $(realpath ${BASH_SOURCE[0]}))
+script_name=$(basename ${BASH_SOURCE[0]})
+
 # define logging files and functions
-error_log_file="$(pwd)/.$(basename ${BASH_SOURCE[0]}).err"
-output_log_file="$(pwd)/.$(basename ${BASH_SOURCE[0]}).log"
+error_log_file="$(pwd)/.${script_name}.err"
+output_log_file="$(pwd)/.${script_name}.log"
 if [[ -f "$error_log_file" ]]; then mv "$error_log_file" "$error_log_file.2"; fi
 if [[ -f "$output_log_file" ]]; then mv "$output_log_file" "$output_log_file.2"; fi
 
@@ -117,13 +124,27 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
     dataset_name=$(basename "${dataset_dir}")
     
     # run pipelines
+    proc_kwargs=()
+    if [[ $with_gui -eq 0 ]]; then
+        proc_kwargs=(--nogui)
+    fi
+    proc_kwargs+=("${dataset_dir}")
     echo_output "Now running ALMA calibration pipeline for \"${dataset_dir}\""
-    echo_output "$(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh --nogui ${dataset_dir} > \".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}.log\""
-    $(dirname ${BASH_SOURCE[0]})/alma_archive_run_alma_pipeline_scriptForPI.sh --nogui "${dataset_dir}" > ".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}.log"
-    
+    echo_output "${script_dir}/alma_archive_run_alma_pipeline_scriptForPI.sh ${proc_kwargs[@]} > \".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}.log\""
+    ${script_dir}/alma_archive_run_alma_pipeline_scriptForPI.sh ${proc_kwargs[@]} > ".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}.log"
+
     # check output
     if [[ -d "${dataset_dir}/calibrated" ]]; then
         echo_output "Successfully produced \"${dataset_dir}/calibrated\"!"
+
+        # further check calibrated.ms
+        if [[ $(find "${dataset_dir}/calibrated/" -maxdepth 1 -name "uid*.ms*" | wc -l) -gt 0 ]]; then
+            if [[ ! -d "${dataset_dir}/calibrated/calibrated.ms" ]] && [[ ! -d "${dataset_dir}/calibrated/calibrated_final.ms" ]]; then
+                echo_output "Now running ALMA calibration pipeline for \"${dataset_dir}\" again to concatenate uid*.ms to calibrated.ms"
+                echo_output "${script_dir}/alma_archive_run_alma_pipeline_scriptForPI.sh ${proc_kwargs[@]} > \".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}_concat.log\""
+                ${script_dir}/alma_archive_run_alma_pipeline_scriptForPI.sh ${proc_kwargs[@]} > ".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}_concat.log"
+            fi
+        fi
     else
         echo_error "Error! Failed to produce \"${dataset_dir}/calibrated\"!"
     fi
@@ -137,7 +158,7 @@ done
 
 
 # finish
-echo_output "Finished processing ALMA project ${Project_code} with $(basename ${BASH_SOURCE[0]})"
+echo_output "Finished processing ALMA project ${Project_code} with ${script_name}"
 echo_output ""
 echo_output ""
 
