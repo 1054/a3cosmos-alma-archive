@@ -2,8 +2,8 @@
 # 
 
 # 20200215 dzliu: -trim-chan?
-
 # 20210414 CASA6 python3 directly calling function() without arg does not work anymore
+# 20250701 Add [[ $ISCASA6 -gt 0 ]]
 
 #source ~/Software/CASA/SETUP.bash 5.4.0
 #source ~/Software/GILDAS/SETUP.bash
@@ -237,10 +237,18 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
     export CASALD_LIBRARY_PATH=""
     echo_output "source \"$casa_setup_script_path\" \"README_CASA_VERSION\""
     source "$casa_setup_script_path" "README_CASA_VERSION"
+
+    CASAVERSION=$(cat README_CASA_VERSION | tr '[:upper:]' '[:lower:]' | perl -p -e 's/^casa version[:]* *([0-9.-]+).*/\1/g')
+    if [[ $(echo "$CASAVERSION" | perl -p -e 's/^([0-9.-]+)$/OK/g') != OK ]]; then                                        
+        echo "Error! Could not read CASA version from "$(realpath README_CASA_VERSION)"!"                                 
+        exit 255                                                                                                          
+    fi                                                                                                                    
+    CASAVERSIONMAJOR=$(echo "$CASAVERSION" | perl -p -e 's/^([0-9]+).*$/\1/g')
+    ISCASA6=$(bc <<< "${CASAVERSIONMAJOR}>=6")
     
     # run CASA listobs
     if [[ ! -f calibrated.ms.listobs.txt ]]; then
-        if grep -q "CASA version 6" README_CASA_VERSION; then
+        if [[ $ISCASA6 -gt 0 ]]; then
             echo_output "casa-ms-listobs-for-casa6 -vis calibrated.ms"
             casa-ms-listobs-for-casa6 -vis calibrated.ms
         else
@@ -303,7 +311,7 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
             rm -rf split_*_width${width_str}.ms
         fi
         # run casa-ms-split
-        if grep -q "CASA version 6" README_CASA_VERSION; then
+        if [[ $ISCASA6 -gt 0 ]]; then
             echo_output "casa-ms-split-for-casa6 -vis calibrated.ms -width ${width} -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} | tee casa-ms-split.log"
             casa-ms-split-for-casa6 -vis calibrated.ms -width ${width} -do-not-restrict-width -timebin 30 ${trim_chan_args[*]} ${unflag_edge_chan_args[*]} -step split exportuvfits gildas ${overwrite_args[*]} 2>&1 | tee casa-ms-split.log
         else
