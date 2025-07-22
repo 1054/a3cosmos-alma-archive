@@ -5,6 +5,7 @@
 #      20170224 01:52 CET
 #      20170224 13:53 CET <20170224> added a check step to make sure we measure the FitGauss
 #      20170228 if FitParam['mu'] < np.min(BinCents[FitRange]) or FitParam['mu'] > np.max(BinCents[FitRange])
+#      20250704 fix the issue when a cube has bad channels.
 # 
 
 
@@ -12,7 +13,7 @@
 # 
 # Check input arguments and pring usage
 # 
-import os, sys
+import os, sys, re
 if len(sys.argv) <= 1:
     print("Usage: ")
     print("  almacosmos_get_fits_image_pixel_histogram.py \"InputFitsImage.fits\"")
@@ -92,6 +93,8 @@ fig, axes = pl.subplots() # nrows=2, ncols=2 # ax0, ax1, ax2, ax3 = axes.flatten
 FitsFile = sys.argv[1]
 print('Input fits file: %s\n'%(FitsFile))
 
+OutFileBase = re.sub(r'\.gz$', r'', FitsFile)
+
 
 # 
 # Read input fits image
@@ -115,6 +118,32 @@ while True:
 
 
 # 
+# If it's a cube, check outlier channels [20250704]
+# 
+if len(FitsImage.shape) >= 3:
+    nchan = np.prod(FitsImage.shape[0:-2])
+    ny, nx = FitsImage.shape[-2:]
+    FitsImage = FitsImage.reshape([nchan, ny, nx])
+    SpecArr = np.full(nchan, fill_value=np.nan)
+    for i in range(nchan):
+        if np.count_nonzero(np.isfinite(FitsImage[i])) >= 3:
+            SpecArr[i] = np.nanstd(FitsImage[i])
+    #print('SpecArr: {}'.format(SpecArr))
+    SpecMed = np.nanmedian(SpecArr)
+    SpecStd = np.nanstd(SpecArr-SpecMed)
+    BadChanMask = (np.abs(SpecArr-SpecMed)>(3.0*SpecStd))
+    GoodChanMask = np.invert(BadChanMask)
+    SpecMed = np.nanmedian(SpecArr[GoodChanMask])
+    SpecStd = np.nanstd(SpecArr[GoodChanMask]-SpecMed)
+    BadChanMask = (np.abs(SpecArr-SpecMed)>(3.0*SpecStd))
+    if np.count_nonzero(BadChanMask)>0:
+        BadChanList = np.argwhere(BadChanMask).ravel().tolist()
+        print('BadChanMask = {}'.format(BadChanList))
+        for i in BadChanList:
+            FitsImage[i, :, :] = np.nan
+
+
+# 
 # Remove NaN and get the rest Bin pixel values
 # 
 BinVar = FitsImage.flatten()
@@ -132,7 +161,7 @@ BinMedian = np.median(BinVar)
 BinMode, BinModeCounts = mode(BinVar)
 BinSigma = np.std(BinVar)
 # output to txt file
-with open('%s.pixel.statistics.txt'%(FitsFile), 'w') as fp:
+with open('%s.pixel.statistics.txt'%(OutFileBase), 'w') as fp:
     print(   "Min    = %.10g"  %(BinMin))
     fp.write("Min    = %.10g\n"%(BinMin))
     print(   "Max    = %.10g"  %(BinMax))
@@ -156,7 +185,7 @@ InnerRange = np.where((BinVar>=(BinMean-FitInnerSigma*BinSigma)) & (BinVar<=(Bin
 InnerMean = np.mean(BinVar[InnerRange])
 InnerSigma = np.std(BinVar[InnerRange])
 # output to txt file
-with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
+with open('%s.pixel.statistics.txt'%(OutFileBase), 'a') as fp:
     print(   "Inner_mu    = %.10g   # FitInnerSigma = %.1f"  %(InnerMean, FitInnerSigma))
     fp.write("Inner_mu    = %.10g   # FitInnerSigma = %.1f\n"%(InnerMean, FitInnerSigma))
     print(   "Inner_sigma = %.10g   # FitInnerSigma = %.1f"  %(InnerSigma, FitInnerSigma))
@@ -273,7 +302,7 @@ while BinLoop and BinNumb <= (len(BinVar)/17.5):
         #pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], 'sigma = %.10g'%(FitParam['sigma']), color=hex2color('#FF0000'), fontsize=18)
         pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], r'$\sigma$ = %.4f mJy/beam'%(FitParam['sigma']*1e3), color=hex2color('#FF0000'), fontsize=24)
         # output to txt file
-        with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
+        with open('%s.pixel.statistics.txt'%(OutFileBase), 'a') as fp:
             print(   "Gaussian_A     = %.10g"  %(FitParam['A'])     )
             fp.write("Gaussian_A     = %.10g\n"%(FitParam['A'])     )
             print(   "Gaussian_mu    = %.10g"  %(FitParam['mu'])    )
@@ -298,9 +327,9 @@ pl.ylabel("N")
 # 
 #pl.show()
 pl.tight_layout()
-print('Saving to %s.pixel.histogram.eps'%(FitsFile))
-fig.savefig('%s.pixel.histogram.eps'%(FitsFile), format='eps')
-#os.system('open "%s.pixel.histogram.eps"'%(FitsFile))
+print('Saving to %s.pixel.histogram.eps'%(OutFileBase))
+fig.savefig('%s.pixel.histogram.eps'%(OutFileBase), format='eps')
+#os.system('open "%s.pixel.histogram.eps"'%(OutFileBase))
 
 
 
@@ -331,8 +360,8 @@ pl.ylabel("log N")
 # 
 #pl.show()
 pl.tight_layout()
-fig.savefig('%s.pixel.histogram.ylog.eps'%(FitsFile), format='eps')
-#os.system('open "%s.pixel.histogram.ylog.eps"'%(FitsFile))
+fig.savefig('%s.pixel.histogram.ylog.eps'%(OutFileBase), format='eps')
+#os.system('open "%s.pixel.histogram.ylog.eps"'%(OutFileBase))
 
 
 print('Done!')

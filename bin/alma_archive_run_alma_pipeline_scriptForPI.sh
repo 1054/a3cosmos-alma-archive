@@ -131,6 +131,10 @@ check_and_extract_casa_version_in_readme_file() {
                     list_of_found_files+=($(find -L "$script_dir/qa" -name "*.tar.gz"))
                     #script_finding_casa_version=alma_archive_find_casa_version_in_qa_weblog.py
                 #fi
+                #if [[ ${#list_of_found_files[@]} -eq 0 ]]; then
+                    list_of_found_files+=($(find -L "$script_dir/qa" -name "*.qa2_report.pdf"))
+                    #script_finding_casa_version=alma_archive_find_casa_version_in_qa_weblog.py
+                #fi
                 if [[ ${#list_of_found_files[@]} -gt 0 ]]; then
                     # run our python code to extract CASA Version from "qa/*.tgz"
                     for (( kk = 0; kk < ${#list_of_found_files[@]}; kk++ )); do
@@ -139,6 +143,8 @@ check_and_extract_casa_version_in_readme_file() {
                             script_finding_casa_version=alma_archive_find_casa_version_in_qa_html.py
                         elif [[ x"${found_file}" == x*".tgz" ]] || [[ x"${found_file}" == x*".tar.gz" ]]; then
                             script_finding_casa_version=alma_archive_find_casa_version_in_qa_weblog.py
+                        elif [[ x"${found_file}" == x*".pdf" ]]; then
+                            script_finding_casa_version=alma_archive_find_casa_version_in_qa2_pdf.py
                         else
                             echo "Error! Could not determine which script to use to find casa version in \"${found_file}\"!"
                             exit 255

@@ -88,6 +88,25 @@ elif [[ -f "$HOME/Softwares/CASA/SETUP.bash" ]] && [[ ! -f "$HOME/Software/CASA/
 fi
 
 
+# check python
+check_python_ok=1
+if [[ $(python -c 'import pypdf' 2>&1 | grep "No module" | wc -l) -gt 0 ]]; then
+    echo "Error! Python pypdf package is not found! Please install it with \`pip install pypdf\`"
+    check_python_ok=0
+fi
+if [[ $(python -c 'import bs4' 2>&1 | grep "No module" | wc -l) -gt 0 ]]; then
+    echo "Error! Python beautifulsoup4 package is not found! Please install it with \`pip install beautifulsoup4\`"
+    check_python_ok=0
+fi
+if [[ $(python -c 'import tarfile' 2>&1 | grep "No module" | wc -l) -gt 0 ]]; then
+    echo "Error! Python tarfile package is not found! Please install it with \`pip install tarfile\`"
+    check_python_ok=0
+fi
+if [[ $check_python_ok -eq 0 ]]; then
+    exit 255
+fi
+
+
 # check meta table
 if [[ ! -f "meta_data_table.txt" ]]; then
     echo_error "Error! \"meta_data_table.txt\" was not found! Please run previous steps first!"

@@ -2,7 +2,7 @@
 # 
 
 from __future__ import print_function
-import os, sys
+import os, sys, re
 from glob import glob
 import tarfile
 from bs4 import BeautifulSoup
@@ -69,6 +69,17 @@ for weblog_item in weblog_obj.getmembers():
         if casa_version != '':
             break
 
-print('CASA version %s'%(casa_version))
+
+
+# 2025-07-10
+# case: "CASA version:5.6.1-8Reduction mode:PL calibration and imaging..."
+test_match = re.match(r'^CASA version:([0-9.-]+)[^0-9.-]*.*', casa_version)
+if test_match:
+    casa_version = test_match.group(1)
+
+
+
+if casa_version != '':
+    print('CASA version %s'%(casa_version))
 
 

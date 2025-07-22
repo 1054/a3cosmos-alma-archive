@@ -230,6 +230,13 @@ for (( i = 0; i < ${#list_image_files[@]}; i++ )); do
     mem_ous_id=""
     mem_ous_id_str="" # for file name
     band=""
+    is_mosaic_individual_field=0
+    if [[ $(basename "$image_path") == *"_mosaic_"* ]]; then
+        is_mosaic_individual_field=1
+        # skip mosaic individual field because we should have the mosaic cube (without a "*mosaic*" suffix)
+        echo "Skipping mosaic individual field (as we have the mosaic cube without a \"*mosaic*\" suffix"
+        continue
+    fi
     if [[ "$dataset_id" == "DataSet_Merged"* ]]; then
         mem_ous_id=""
         mem_ous_id_list=()

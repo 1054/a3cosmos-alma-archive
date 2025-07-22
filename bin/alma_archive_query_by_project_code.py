@@ -244,6 +244,7 @@ for project_code in project_codes:
         output_table = query_result[['Project code','Member ous id','Source name','Observation date','Integration','Band','Array','Mosaic']]
         output_table['Observation date'] = [t.replace(' ','T') for t in output_table['Observation date']]
         output_table['Mosaic'] = [re.sub(r'^$',r'False',t) for t in output_table['Mosaic']]
+        output_table['Band'] = [re.sub(r' ',r'+',t) for t in output_table['Band']]
         for colname in output_table.colnames:
             output_table.rename_column(colname, colname.replace(' ','_'))
         output_table.meta = None

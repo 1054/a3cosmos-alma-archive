@@ -34,7 +34,8 @@ except:
     import casatools
     class CasaDef():
         def __init__(self):
-            self.casa_version = casatools.version_string()
+            #self.casa_version = casatools.version_string()
+            self.casa_version = '.'.join(list(map(str, casatools.version())))
     casadef = CasaDef()
 def version_tuple(version_str):
     return tuple(map(int, (version_str.split("."))))
