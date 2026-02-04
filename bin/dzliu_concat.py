@@ -12,7 +12,13 @@
 from __future__ import print_function
 import os, sys, re, json, copy, timeit, shutil
 import numpy as np
-from taskinit import casalog, tb #, ms, iatool
+try:
+    from taskinit import casalog, tbtool, tb #, ms, iatool
+except:
+    from casatasks import casalog
+    from casatools import table
+    tbtool = table
+    tb = tbtool()
 #from taskinit import casac
 #tb = casac.table
 #from __casac__.table import table as tb

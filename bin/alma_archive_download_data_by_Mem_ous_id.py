@@ -2,9 +2,9 @@
 # 
 
 from __future__ import print_function
-import os, sys, re, pkg_resources
-pkg_resources.require('astroquery')
-pkg_resources.require('keyrings.alt')
+import os, sys, re, astroquery, keyrings.alt # pkg_resources
+#pkg_resources.require('astroquery')
+#pkg_resources.require('keyrings.alt')
 import astroquery
 import requests
 from astroquery.alma.core import Alma
@@ -12,13 +12,27 @@ import astropy.io.ascii as asciitable
 from astropy.table import unique, Table
 from operator import itemgetter, attrgetter
 
+# 
+# 20260203
+# 
+if not hasattr(Alma, 'stage_data'):
+    #from astroquery.alma.core import AlmaClass
+    #class ExtendedAlmaClass(AlmaClass):
+    #    def stage_data(self, uids):
+    #        link_list = self.get_data_info(uids) # expand_tarfiles=True
+    #        self.download_files(link_list)
+    #
+    #Alma = ExtendedAlmaClass()
+    #Alma.stage_data = Alma.retrieve_data_from_uid
+    Alma.stage_data = Alma.get_data_info
+
 
 # 
 # read input argument, which should be Member_ous_id
 # 
 Member_ous_ids = []
 Login_user_name = ''
-Use_alma_site = 'nrao'
+Use_alma_site = 'naoj' # 'nrao'
 Output_folder = ''
 Only_products = False
 Skip_external = False
@@ -112,6 +126,8 @@ for Member_ous_id in Member_ous_ids:
         # 'https://beta.cadc-ccda.hia-iha.nrc-cnrc.gc.ca'
         if Use_alma_site == 'eso':
             Alma.archive_url = u'https://almascience.eso.org'
+        elif Use_alma_site == 'naoj':
+            Alma.archive_url = u'https://almascience.nao.ac.jp'
         else:
             Alma.archive_url = u'https://almascience.nrao.edu'
         # 
@@ -153,7 +169,7 @@ for Member_ous_id in Member_ous_ids:
     os.system('echo "" >> %s'%(Output_sh))
     os.system('echo "set -e" >> %s'%(Output_sh))
     os.system('echo "" >> %s'%(Output_sh))
-    os.system('echo "export PATH=\\\"\$PATH:%s\\\"" >> %s'%(os.path.dirname(sys.argv[0]), Output_sh))
+    os.system('echo "export PATH=\\\"$PATH:%s\\\"" >> %s'%(os.path.dirname(sys.argv[0]), Output_sh))
     
     has_fits_images = False
     for i in range(len(uid_url_table_nodups)):

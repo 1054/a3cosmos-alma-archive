@@ -32,6 +32,7 @@ function start_session {
     elif command -v "curl" > /dev/null 2>&1; then
       LOGINCOMMAND=(curl -s -k -o /dev/null -c alma-rh-cookie.txt "-u" "${USERNAME}:${PASSWORD}")
     fi
+
     # echo "${LOGINCOMMAND[@]}" "https://almascience.nrao.edu/dataPortal/api/login"
     # $("${LOGINCOMMAND[@]}" "https://almascience.nrao.edu/dataPortal/api/login") # 20240922
     $("${LOGINCOMMAND[@]}" "https://almascience.nao.ac.jp/dataPortal/downloads/login")
@@ -62,6 +63,12 @@ function download {
   if [[ x"$DownloadViaInterface" != x"" ]]; then
       echo "DownloadViaInterface: $DownloadViaInterface"
       DOWNLOADCOMMAND=(curl -C - -s -k -O -f -b alma-rh-cookie.txt --interface $DownloadViaInterface)
+  fi
+
+  # 20251104 DZLIU
+  if [[ "${BWLIMIT}"x != ""x ]]; then
+      echo "BwLimit: ${BWLIMIT}"
+      DOWNLOADCOMMAND+=(--limit-rate "${BWLIMIT}")
   fi
 
   echo "starting download of `basename $1`"
@@ -103,6 +110,12 @@ if [[ -z "${INPUT_PASSWORD}" ]]; then
     PASSWORD="invalid"
 else
     PASSWORD="${INPUT_PASSWORD}"
+fi
+
+if [[ -z "${INPUT_BWLIMIT}" ]]; then
+    BWLIMIT=""
+else
+    BWLIMIT="${INPUT_BWLIMIT}"
 fi
 
 

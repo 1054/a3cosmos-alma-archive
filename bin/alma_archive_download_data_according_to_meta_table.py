@@ -20,6 +20,7 @@ import numpy as np
 
 # 20240119: Alma.stage_data is deprecated in astroquery 0.4.7.dev9046, use get_data_info (for url list) or retrieve_data_from_uid (to download files)
 
+# 20251104: allow to select data set
 
 
 
@@ -37,6 +38,8 @@ Use_alma_site = 'naoj' # 'eso' # 'nrao'
 Use_astroquery_download = False
 output_dir = ''
 overwrite = False
+select_datasets = []
+bwlimit = ''
 verbose = 0
 i = 1
 while i < len(sys.argv):
@@ -54,7 +57,7 @@ while i < len(sys.argv):
         if i < len(sys.argv):
             output_dir = sys.argv[i]
     elif tmp_arg == '-server':
-        i = i+1               
+        i = i+1
         if i < len(sys.argv):
             if sys.argv[i].upper() in ['EA', 'NAOJ']:
                 Use_alma_site = 'naoj'
@@ -63,6 +66,22 @@ while i < len(sys.argv):
             elif sys.argv[i].upper() in ['NA', 'NRAO']:
                 Use_alma_site = 'nrao'
             print('Use_alma_site: {}'.format(Use_alma_site))
+    elif tmp_arg == '-datasets':
+        i = i+1
+        if i < len(sys.argv):
+            if re.match('^[0-9,]+$', sys.argv[i]):
+                select_datasets = list(map(int, sys.argv[i].split(',')))
+            else:
+                raise Exception('Error! Incorrect --datasets arguments! Please input integer or list of integers separated by comma.')
+            print('select_datasets: {}'.format(select_datasets))
+    elif tmp_arg == '-bwlimit':
+        i = i+1
+        if i < len(sys.argv):
+            if re.match('^[0-9.]+(k|K|m|M|g|G)$', sys.argv[i]):
+                bwlimit = sys.argv[i]
+            else:
+                raise Exception('Error! Incorrect --bwlimit arguments! Example: --bwlimit 2.5m')
+            print('bwlimit: {}'.format(bwlimit))
     elif tmp_arg == '-eso': 
         Use_alma_site = 'eso'
     elif tmp_arg == '-nrao': 
@@ -120,6 +139,44 @@ if not ('Project_code' in meta_table.colnames) or \
 
 
 
+# 
+# loop each meta table row to get dataset id
+# 
+if 'Dataset_dirname' not in meta_table.colnames:
+    Dataset_dirnames = ['']*len(meta_table)
+    t_Dataset_dict = {}
+    t_Dataset_id = 0
+    Project_code = meta_table['Project_code']
+    Member_ous_id = meta_table['Member_ous_id']
+    Source_name = meta_table['Source_name'].data.astype(str)
+    for i in range(len(meta_table)):
+        t_Project_code = Project_code[i]
+        t_Member_ous_id = Member_ous_id[i]
+        t_Member_ous_id = re.sub(r'[^a-zA-Z0-9._+-]', r'_', Member_ous_id[i])
+        # 
+        # determine t_Dataset_id, check t_Dataset_dict
+        if t_Member_ous_id in t_Dataset_dict:
+            t_Dataset_dirname = t_Dataset_dict[t_Member_ous_id]
+        else:
+            # 
+            # got a new dataset not in previous t_Dataset_dict
+            t_Dataset_id += 1
+            # 
+            # determine t_Dataset_dirname
+            t_Dataset_digits = min(np.ceil(np.log10(len(meta_table))), 2) # count digits and format the ID of each DataSet. 
+            if t_Dataset_digits < 2: 
+                t_Dataset_digits = 2
+            t_Dataset_dirname = ('DataSet_%%0%dd'%(t_Dataset_digits))%(t_Dataset_id)
+            # 
+            # append to t_Dataset_dict
+            t_Dataset_dict[t_Member_ous_id] = t_Dataset_dirname
+        # 
+        # store into output table
+        Dataset_dirnames[i] = t_Dataset_dirname
+    # 
+    # store into output table
+    meta_table['Dataset_dirname'] = Dataset_dirnames
+
 
 # 
 # Loop each row
@@ -133,6 +190,15 @@ for i in range(len(meta_table)):
     Member_ous_id = meta_table['Member_ous_id'][i]
     Member_ous_name = Member_ous_id.replace(':','_').replace('/','_').replace('+','_') # alternative?: Alma.clean_uid(Member_ous_id)
     Output_name = 'alma_archive_download_tar_files_by_Mem_ous_id_%s'%(Member_ous_name)
+    # 
+    # check dataset options
+    # 
+    if 'Dataset_dirname' in meta_table.colnames:
+        Dataset_dirname = meta_table['Dataset_dirname'][i]
+        Dataset_ID = int(Dataset_dirname.replace('DataSet_', ''))
+        if len(select_datasets) > 0:
+            if Dataset_ID not in select_datasets:
+                continue
     # 
     # prepare output dir
     # 
@@ -303,6 +369,8 @@ for i in range(len(meta_table)):
             else:
                 fp.write("export INPUT_USERNAME=\"\"\n")
                 fp.write("export INPUT_PASSWORD=\"\"\n")
+            if bwlimit != '':
+                fp.write("export INPUT_BWLIMIT=\"%s\"\n"%(bwlimit))
             for i in range(len(uid_url_table)):
                 fp.write("\n")
                 fp.write("alma_archive_download_data_via_http_link.sh \"%s\"\n"%(uid_url_table[i][uid_url_col]))

@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # 
+# last update: 2025-11-04 TP antenna naming
+# 
 from __future__ import print_function
-import os, sys, re, copy, shutil, time, json, pkg_resources
-pkg_resources.require('astroquery')
-pkg_resources.require('keyrings.alt')
+import os, sys, re, copy, shutil, time, json
+#import pkg_resources
+#pkg_resources.require('astroquery')
+#pkg_resources.require('keyrings.alt')
 if sys.version_info[0] >= 3:
     unicode = str
 import numpy as np
@@ -183,7 +186,21 @@ for project_code in project_codes:
             query_result['Observation date'] = Time(query_result['t_min'], format='mjd').to_value(format='isot') # MJD to ISO
             query_result['Integration'] = query_result['t_exptime'] # seconds
             query_result['Band'] = query_result['band_list']
-            query_result['Array'] = ['7m' if t.split(' ')[0].split(':')[1][0:2] in ['CM'] else '12m' for t in query_result['antenna_arrays']] # 12m DA DV, 7m CM
+            query_result['Array'] = []
+            for antenna_array_str in range(query_result['antenna_arrays']):
+                antenna_prefix_str = antenna_array_str.split(' ')[0].split(':')[0][0:1]
+                antenna_tag_str = antenna_array_str.split(' ')[0].split(':')[1][0:2]
+                if antenna_tag_str in ['CM']: 
+                    # e.g. J501:CM10 J503:CM03 J504:CM12 J505:CM08 J506:CM05 N601:CM07 N602:CM01 N603:CM09 N604:CM11 N605:CM04 N606:CM06
+                    antenna_tag = '7m'
+                elif antenna_prefix_str == 'T' and antenna_tag_str in ['PM']: 
+                    # e.g. T701:PM02 T702:PM03 T703:PM01 T704:PM04
+                    antenna_tag = 'tp'
+                else: 
+                    # e.g. A001:DV07 A002:DA46 A003:DV12 A006:DA61 A007:DV05 A008:DA42 A009:DV18 A010:DA50 ......
+                    antenna_tag = '12m' # DV' 'DA' 'PM'
+                query_result['Array'].append(antenna_tag)
+                # 12m DA DV, 7m CM, TP PM (20250825 fixed TP identification)
             query_result['Mosaic'] = ['True' if (t == 'T' or t == True) else 'False' for t in query_result['is_mosaic']]
         else:
             print('Error! query_result columns are not recognized! The souce code needs to be updated!')

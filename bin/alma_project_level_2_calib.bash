@@ -63,28 +63,24 @@ echo_output "Began processing ALMA project ${Project_code} with $(basename ${BAS
 
 
 # check CASA
-if [[ ! -d "$HOME/Softwares/CASA" ]] && [[ ! -d "$HOME/Software/CASA" ]]; then
-    echo "Error! \"$HOME/Software/CASA\" was not found!"
-    echo "Sorry, we need to put all versions of CASA under \"$HOME/Software/CASA/Portable/\" directory!"
-    exit 1
-fi
-if [[ ! -f "$HOME/Softwares/CASA/SETUP.bash" ]] && [[ ! -f "$HOME/Software/CASA/SETUP.bash" ]]; then
-    echo "Error! \"$HOME/Software/CASA/SETUP.bash\" was not found!"
-    echo "Please copy \"$(dirname ${BASH_SOURCE[0]})/casa_setup/SETUP.bash\" to \"$HOME/Software/CASA/SETUP.bash\" and make it executable."
-    #echo "Sorry, please ask Daizhong by emailing dzliu@mpia.de!"
-    exit 1
-fi
-if [[ ! -f "$HOME/Softwares/CASA/Portable/bin/bin_setup.bash" ]] && [[ ! -f "$HOME/Software/CASA/Portable/bin/bin_setup.bash" ]]; then
-    echo "Error! \"$HOME/Software/CASA/Portable/bin/bin_setup.bash\" was not found!"
-    echo "Please copy \"$(dirname ${BASH_SOURCE[0]})/casa_setup/bin_setup.bash\" to \"$HOME/Software/CASA/Portable/bin/bin_setup.bash\" and make it executable."
-    #echo "Sorry, please ask Daizhong by emailing dzliu@mpia.de!"
-    exit 1
-fi
-
 if [[ -f "$HOME/Software/CASA/SETUP.bash" ]]; then
     casa_setup_script_path="$HOME/Software/CASA/SETUP.bash"
-elif [[ -f "$HOME/Softwares/CASA/SETUP.bash" ]] && [[ ! -f "$HOME/Software/CASA/SETUP.bash" ]]; then
+    casa_setup_script_dir=$(dirname "$casa_setup_script_path")"/Portable"
+elif [[ -f "$HOME/Softwares/CASA/SETUP.bash" ]]; then
     casa_setup_script_path="$HOME/Softwares/CASA/SETUP.bash"
+    casa_setup_script_dir=$(dirname "$casa_setup_script_path")"/Portable"
+elif [[ -f "/software/casa/SETUP.bash" ]]; then
+    casa_setup_script_path="/software/casa/SETUP.bash"
+    casa_setup_script_dir=$(dirname "$casa_setup_script_path")
+else
+    echo "Error! \"$HOME/Software/CASA/SETUP.bash\" or \"/software/casa/SETUP.bash\" was not found!"
+    echo "Please copy \"$(dirname ${BASH_SOURCE[0]})/casa_setup/SETUP.bash\" to \"$HOME/Software/CASA/SETUP.bash\" and make it executable."
+    exit 1
+fi
+if [[ ! -f "$casa_setup_script_dir/bin/bin_setup.bash" ]]; then
+    echo "Error! \"$casa_setup_script_dir/bin/bin_setup.bash\" was not found!"
+    echo "Please copy \"$(dirname ${BASH_SOURCE[0]})/casa_setup/bin_setup.bash\" to \"$casa_setup_script_dir/bin/bin_setup.bash\" and make it executable."
+    exit 1
 fi
 
 
@@ -114,6 +110,16 @@ if [[ ! -f "meta_data_table.txt" ]]; then
 fi
 
 
+# read array tags from meta table
+meta_header=$(head -n 1 meta_data_table.txt | sed -e 's/^# *//g' | tr -s ' ')
+array_tag_column=$(echo ${meta_header/Array*/Array} | wc -w)
+dataset_tag_column=$(echo ${meta_header/Dataset_dirname*/Dataset_dirname} | wc -w)
+array_tags=($(cat meta_data_table.txt | grep -v '^#' | awk "{print \$${array_tag_column}};" | tr -s ' '))
+dataset_tags=($(cat meta_data_table.txt | grep -v '^#' | awk "{print \$${dataset_tag_column};}" | tr -s ' '))
+#echo "array_tags: ${#array_tags[@]} ${array_tags[@]}"
+#echo "dataset_tags: ${#dataset_tags[@]} ${dataset_tags[@]}"
+
+
 # check Level_2_Calib folder
 if [[ ! -d Level_2_Calib ]]; then 
     echo_error "Error! \"Level_2_Calib\" does not exist! Please run previous steps first!"
@@ -124,7 +130,26 @@ fi
 # read Level_2_Calib/DataSet_*
 if [[ ${#select_dataset[@]} -eq 0 ]]; then
     # if user has not input -dataset, then process all datasets
-    list_of_datasets=($(ls -1d Level_2_Calib/DataSet_* | sort -V))
+    list_of_datasets=()
+    candidate_datasets=($(ls -1d Level_2_Calib/DataSet_* | sort -V))
+    # filter out tp data sets (20250825)
+    for (( i = 0; i < ${#candidate_datasets[@]}; i++ )); do
+        candidate_dataset_name=$(basename "${candidate_datasets[i]}")
+        is_tp_data=0
+        for (( k = 0; k < ${#dataset_tags[@]}; k++ )); do
+            #echo "${dataset_tags[k]}" == "$candidate_dataset_name"
+            if [[ "${dataset_tags[k]}" == "$candidate_dataset_name" ]] && [[ "${array_tags[k]}" == "tp" ]]; then
+                is_tp_data=1
+                break
+            fi
+        done
+        if [[ $is_tp_data -gt 0 ]]; then
+            echo "Skipping TP data set \"${candidate_datasets[i]}\" for processing"
+        else
+            echo "Adding data set \"${candidate_datasets[i]}\" for processing"
+            list_of_datasets+=("${candidate_datasets[i]}")
+        fi
+    done
 else
     list_of_datasets=()
     for (( i = 0; i < ${#select_dataset[@]}; i++ )); do
@@ -135,6 +160,8 @@ else
         list_of_datasets+=($(ls -1d "Level_2_Calib/${select_dataset[i]}"))
     done
 fi
+
+echo ""
 
 
 # loop datasets and run ALMA calibration pipeline scriptForPI.py
@@ -154,15 +181,19 @@ for (( i = 0; i < ${#list_of_datasets[@]}; i++ )); do
 
     # check output
     if [[ -d "${dataset_dir}/calibrated" ]]; then
-        echo_output "Successfully produced \"${dataset_dir}/calibrated\"!"
-
-        # further check calibrated.ms
+        # further check calibrated uid*.ms
         if [[ $(find "${dataset_dir}/calibrated/" -maxdepth 1 -name "uid*.ms*" | wc -l) -gt 0 ]]; then
             if [[ ! -d "${dataset_dir}/calibrated/calibrated.ms" ]] && [[ ! -d "${dataset_dir}/calibrated/calibrated_final.ms" ]]; then
                 echo_output "Now running ALMA calibration pipeline for \"${dataset_dir}\" again to concatenate uid*.ms to calibrated.ms"
                 echo_output "${script_dir}/alma_archive_run_alma_pipeline_scriptForPI.sh ${proc_kwargs[@]} > \".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}_concat.log\""
                 ${script_dir}/alma_archive_run_alma_pipeline_scriptForPI.sh ${proc_kwargs[@]} > ".alma_archive_run_alma_pipeline_scriptForPI_${dataset_name}_concat.log"
             fi
+        fi
+        # finally check calibrated.ms
+        if [[ $(find "${dataset_dir}/calibrated/" -maxdepth 1 -name "calibrated*.ms*" | wc -l) -gt 0 ]]; then
+            echo_output "Successfully produced \"${dataset_dir}/calibrated\"!"
+        else
+            echo_error "Error! Failed to produce \"${dataset_dir}/calibrated/calibrated*.ms\"?"
         fi
     else
         echo_error "Error! Failed to produce \"${dataset_dir}/calibrated\"!"

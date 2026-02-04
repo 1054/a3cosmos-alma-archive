@@ -23,18 +23,35 @@ shift
 
 download_only=0
 query_kwargs=()
+download_kwargs=()
 while [[ $# -gt 0 ]]; do
     if [[ "$1" == "--user" ]] && [[ $# -ge 2 ]]; then
         echo "$1 $2"
         echo "$1 $2" >> "meta_user_info.txt"
         query_kwargs+=($1)
         query_kwargs+=($2)
+        download_kwargs+=($1)
+        download_kwargs+=($2)
         shift
     fi
     if [[ "$1" == "--server" ]] && [[ $# -ge 2 ]]; then
         echo "$1 $2"
         query_kwargs+=($1)
         query_kwargs+=($2)
+        download_kwargs+=($1)
+        download_kwargs+=($2)
+        shift
+    fi
+    if [[ "$1" == "--datasets" ]] && [[ $# -ge 2 ]]; then
+        echo "$1 $2"
+        download_kwargs+=($1)
+        download_kwargs+=("$2")
+        shift
+    fi
+    if [[ "$1" == "--bwlimit" ]] && [[ $# -ge 2 ]]; then
+        echo "$1 $2"
+        download_kwargs+=($1)
+        download_kwargs+=("$2")
         shift
     fi
     if [[ "$1" == "--download-only" ]]; then
@@ -95,8 +112,8 @@ fi
 # now downloading raw data
 if [[ ! -f "Level_1_Raw/${Project_code}.cache.done" ]]; then
     echo_output "Now downloading raw data (it can take several days!)"
-    echo alma_archive_download_data_according_to_meta_table.py "meta_data_table.txt" -out "Level_1_Raw/${Project_code}.cache ${query_kwargs[@]}"
-    alma_archive_download_data_according_to_meta_table.py "meta_data_table.txt" -out "Level_1_Raw/${Project_code}.cache" ${query_kwargs[@]}
+    echo alma_archive_download_data_according_to_meta_table.py "meta_data_table.txt" -out "Level_1_Raw/${Project_code}.cache ${download_kwargs[@]}"
+    alma_archive_download_data_according_to_meta_table.py "meta_data_table.txt" -out "Level_1_Raw/${Project_code}.cache" ${download_kwargs[@]}
     if [[ $? -ne 0 ]]; then echo "Error! Failed to run alma_archive_download_data_according_to_meta_table.py"; exit 255; fi
     date +"%Y-%m-%d %Hh%Mm%Ss %Z" > "Level_1_Raw/${Project_code}.cache.done"
 else

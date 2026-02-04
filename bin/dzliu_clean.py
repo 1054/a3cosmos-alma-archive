@@ -487,6 +487,7 @@ def find_lab_line_name_and_freq(line_name = ''):
     lab_line_dict['HI21cm'] = {'rest-freq': 1.420405751}
     lab_line_dict['[CI]370um'] = {'rest-freq': 809.34197}
     lab_line_dict['[CI]609um'] = {'rest-freq': 492.16065}
+    lab_line_dict['[CII]158um'] = {'rest-freq': 1900.5369}
     lab_line_dict['CO(1-0)'] = {'rest-freq': 115.2712018}
     lab_line_dict['CO(2-1)'] = {'rest-freq': 230.5380000}
     lab_line_dict['CO(3-2)'] = {'rest-freq': 345.7959899}
@@ -571,7 +572,7 @@ def split_continuum_visibilities(
     if galaxy_redshift is None and line_velocity is None:
         # if no galaxy_redshift and line_velocity, we can not find line-free channels!
         do_find_line_free_channels = False
-        print2('Warning! No galaxy redshift or velocity information was given! We will assume no line within the bandwidth!')
+        print2('Warning! No galaxy redshift or velocity information was given! We will assume no line channel to exclude within the bandwidth!')
     elif line_name is not None and (line_velocity is None or line_velocity_width is None):
         # if has line_name but no line velocity or line velocity width, raise error
         raise ValueError('Error! Please input both line_name and line_velocity and line_velocity_width for the line_name "%s"!'%(line_name))
@@ -650,7 +651,7 @@ def split_continuum_visibilities(
                 ref_freq_Hz = spw_chan_freq_list[0]
                 width_freq_Hz = spw_chan_width_list[0]
                 start_freq_Hz = all_line_frequency[k] - 0.5*(all_line_velocity_width[k]/2.99792458e5)*spw_ref_freq #<TODO># lowest freq (as document says) or left-most freq (depending on positive/negative chanwidth)?
-                start = (start_freq_Hz - ref_freq_Hz) / width_freq_Hz + ref_chan - 1 # 0-based, see tclean-task.html
+                start = (start_freq_Hz - ref_freq_Hz) / width_freq_Hz + spw_ref_chan - 1 # 0-based, see tclean-task.html
                 start = int(np.round(start))
                 nchan = (all_line_velocity_width[k]/2.99792458e5)*spw_ref_freq / width_freq_Hz # the output number of channels, covering the full line_velocity_width
                 nchan = int(np.round(nchan))
@@ -1148,7 +1149,7 @@ def arcsec2float(arcsec_str):
 # 
 def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter = 30000, calcres = True, calcpsf = True, 
                              phasecenter = '', field = '', pbmask = 0.2, pblimit = 0.1, threshold = 0.0, specmode = 'cube', 
-                             beamsize = '', max_imsize = None, robust = 2.0, reffreq = None):
+                             beamsize = '', max_imsize = None, robust = 2.0, reffreq = None, uvtaper = []):
     # 
     # Requires CASA module/function tb.
     # 
@@ -1362,6 +1363,7 @@ def prepare_clean_parameters(vis, imagename, imcell = None, imsize = None, niter
     clean_parameters['robust'] = robust
     clean_parameters['nterms'] = 1 # nterms must be ==1 when deconvolver='hogbom' is chosen
     #clean_parameters['chanchunks'] = -1 # This feature is experimental and may have restrictions on how chanchunks is to be chosen. For now, please pick chanchunks so that nchan/chanchunks is an integer. # 20230901 not valid anymore for casa 6.4.1
+    clean_parameters['uvtaper'] = uvtaper
     clean_parameters['interactive'] = False
     #clean_parameters['savemodel'] = 'virtual' # 'none', 'virtual', 'modelcolumn'. 'virtual' for simple gridding, 'modelcolumn' for gridder='awproject'.
     #niter = 30000
